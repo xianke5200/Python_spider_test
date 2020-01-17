@@ -44,7 +44,6 @@ def main(page):
     url = 'http://bang.dangdang.com/books/fivestars/01.00.00.00.00.00-recent30-0-0-1-' + str(page)
     html = request_dangdang(url)
     items = parse_result(html)
-
     for item in items:
         write_item_to_file(item)
 
@@ -52,11 +51,10 @@ if __name__ == '__main__':
     url = 'http://bang.dangdang.com/books/fivestars/01.00.00.00.00.00-recent30-0-0-1-1'
     response = requests.get(url)
     items = parse_paging_result(response.text)
-    max_page = 0
     #get max page
     for item in items:
         print(item)
-        max_page = int(item['page'])
 
+    max_page = int(item['page'])
     for i in range(1, max_page+1):
         main(i)
