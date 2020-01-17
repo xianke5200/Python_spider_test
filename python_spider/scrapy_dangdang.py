@@ -49,8 +49,8 @@ def main(page):
 
 if __name__ == '__main__':
     url = 'http://bang.dangdang.com/books/fivestars/01.00.00.00.00.00-recent30-0-0-1-1'
-    response = requests.get(url)
-    items = parse_paging_result(response.text)
+    html = request_dangdang(url)
+    items = parse_paging_result(html)
     #get max page
     for item in items:
         print(item)
