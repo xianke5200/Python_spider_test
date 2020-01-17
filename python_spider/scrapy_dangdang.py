@@ -26,7 +26,7 @@ def parse_result(html):
 
 def parse_paging_result(html):
     pattern = re.compile('<li>.*?<a\shref="javascript:loadData(.*?);"(\sclass="current")?>(\d+)</a>.*?</li>', re.S)
-    items = re.findall(pattern, response.text)
+    items = re.findall(pattern, html)
     for item in items:
         yield{
             'localData':item[0],
