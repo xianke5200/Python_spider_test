@@ -23,6 +23,17 @@ def parse_result(html):
             'times':item[5],
             'price':item[6]
         }
+
+def parse_paging_result(html):
+    pattern = re.compile('<li>.*?<a\shref="javascript:loadData(.*?);"(\sclass="current")?>(\d+)</a>.*?</li>', re.S)
+    items = re.findall(pattern, response.text)
+    for item in items:
+        yield{
+            'localData':item[0],
+            'current':item[1],
+            'page':item[2]
+        }
+
 def write_item_to_file(item):
     print('开始写入数据 ===>' + str(item))
     with open('book.txt', 'a', encoding='UTF-8') as f:
@@ -38,5 +49,14 @@ def main(page):
         write_item_to_file(item)
 
 if __name__ == '__main__':
-    for i in range(1, 26):
+    url = 'http://bang.dangdang.com/books/fivestars/01.00.00.00.00.00-recent30-0-0-1-1'
+    response = requests.get(url)
+    items = parse_paging_result(response.text)
+    max_page = 0
+    #get max page
+    for item in items:
+        print(item)
+        max_page = int(item['page'])
+
+    for i in range(1, max_page+1):
         main(i)
