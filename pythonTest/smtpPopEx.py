@@ -1,0 +1,28 @@
+from smtplib import SMTP
+from poplib import  POP3
+from time import sleep
+
+SMTPSVR = 'smtp.decadesmart.com.cn'
+POP3SVR = 'pop.python.is.cool'
+
+origHdrs = ['From: chenlue@decadesmart.com.cn', 'To: chenlue@decadesmart.com.cn',
+            'Subject: test msg']
+origBody = ['xxx', 'yyy', 'zzz']
+origMsg = '\r\n\r\n'.join(['\r\n'.join(origHdrs),
+                           '\r\n'.join(origBody)])
+
+sendSvr = SMTP(SMTPSVR)
+errs = sendSvr.sendmail('chenlue@decadesmart.com.cn', ('chenlue@decadesmart.com.cn',)
+                        , origMsg)
+sendSvr.quit()
+assert len(errs) == 0, errs
+sleep(10)       #wait for mail to be delivered
+
+recvSvr = POP3(POP3SVR)
+recvSvr.user('wesley')
+recvSvr.pass_('youllNeverGuess')
+rsp, msg, siz = recvSvr.retr(recvSvr.stat()[0])
+#strip headers and compare to orig msg
+sep = msg.index('')
+recvBody = [sep+1, ]
+assert origBody == recvBody
