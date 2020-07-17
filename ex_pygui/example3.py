@@ -82,7 +82,8 @@ class Example(QWidget):
         grid.addWidget(authorEdit, 2, 1)
 
         grid.addWidget(review, 3, 0)
-        grid.addWidget(reviewEdit, 3, 1)
+        #创建一个网格布局和设置组件之间的间距
+        grid.addWidget(reviewEdit, 3, 1, 5, 1)
 
         self.setLayout(grid)
 
