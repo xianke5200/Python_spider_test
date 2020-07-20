@@ -2,8 +2,10 @@
 #-*- coding: utf-8 -*-
 
 import sys
+
+from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import QMainWindow, QApplication, QAction, qApp,\
-    QTextEdit
+    QTextEdit, QPushButton
 from PyQt5.QtGui import QIcon
 
 
@@ -13,8 +15,8 @@ class Example(QMainWindow):
         self.initUI()
 
     def initUI(self):
-        textEdit = QTextEdit()
-        self.setCentralWidget(textEdit)
+        #textEdit = QTextEdit()
+        #self.setCentralWidget(textEdit)
 
         self.statusBar().showMessage('Ready')
         exitAction = QAction(QIcon('breath_time.png'), '&Exit', self)
