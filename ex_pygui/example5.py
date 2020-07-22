@@ -15,9 +15,9 @@ class Example(QMainWindow):
         self.initUI()
 
     def initUI(self):
-        #self.slider()
+        self.slider()
         #self.btnevt()
-        self.selfslot()
+        #self.selfslot()
 
     def slider(self):
         lcd = QLCDNumber(self)

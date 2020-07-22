@@ -1,10 +1,11 @@
 
 import xlrd
 import xlwt
-from PyQt5.QtCore import QUrl, QRect
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import QUrl, QRect, QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QButtonGroup, QFrame, QToolButton, QStackedLayout, \
     QWidget, QStatusBar, QBoxLayout, QLabel, QDesktopWidget, QMessageBox, QMenu, QAction, QFileDialog, QLineEdit, \
-    QGridLayout, QComboBox
+    QGridLayout, QComboBox, QDialog
 from PyQt5.QtGui import QDesktopServices, QFont, QIcon
 from PyQt5.QtCore import Qt
 import time
@@ -18,8 +19,8 @@ class Little_tool(QWidget):
 
         self.setWindowTitle("测试")
         # 窗口大小
-        self.resize(800, 600)
-        # self.setFixedSize(1500, 600)  # 设置窗口为固定尺寸， 此时窗口不可调整大小
+        #self.resize(800, 600)
+        self.setFixedSize(800, 600)  # 设置窗口为固定尺寸， 此时窗口不可调整大小
         # self.setMinimumSize(1800， 1000)  # 设置窗口最大尺寸
         # self.setMaximumSize(900， 300)  # 设置窗口最小尺寸
         # self.setWindowFlag(Qt.WindowStaysOnTopHint)   # 设置窗口顶层显示
@@ -139,10 +140,17 @@ class Little_tool(QWidget):
         self.stacked_layout.addWidget(main_frame1)
         self.stacked_layout.addWidget(main_frame2)
 
-        # self.layout = QBoxLayout(QBoxLayout.LeftToRight)
-        # self.setLayout(self.layout)
-        # self.layout.addWidget(self.frame_tool)
-        # self.layout.addWidget(self.main_frame)
+        # self.layout = QBoxLayout(QBoxLayout.BottomToTop)
+        # self.layout_test = QBoxLayout(QBoxLayout.LeftToRight)
+        # self.frame_tool.setLayout(self.layout)
+        # #self.layout.addWidget(self.frame_tool)
+        # # self.layout.addWidget(self.main_frame)
+        # self.layout_test.addWidget(self.window1_btn)
+        # self.layout_test.addWidget(self.window2_btn)
+        # self.layout_test.addWidget(help_btn)
+        # self.layout.addLayout(self.layout_test)
+        # self.layout.addLayout(self.stacked_layout)
+
 
 
     def window1_UI(self, frame):
@@ -157,6 +165,18 @@ class Little_tool(QWidget):
         self.rom_frame.setGeometry(0, 0, self.width(), frame.height() - 25)
         self.rom_frame.setFrameShape(QFrame.Panel)
         self.rom_frame.setFrameShadow(QFrame.Raised)
+
+        realtime_lable = QLabel(self.rom_frame)
+        realtime_lable.setText(
+            '%04d/%02d/%02d-%02d:%02d:%02d' % (time.localtime().tm_year, time.localtime().tm_mon, time.localtime().tm_mday,
+                                               time.localtime().tm_hour, time.localtime().tm_min, time.localtime().tm_sec))
+        realtime_lable.setGeometry(self.width() - 50, frame.height() - 25, 50, 25)
+        frame1_bar.addPermanentWidget(realtime_lable)
+        real_timer = QTimer(frame1_bar)
+        real_timer.timeout.connect(lambda: realtime_lable.setText(
+            '%04d/%02d/%02d-%02d:%02d:%02d' % (time.localtime().tm_year, time.localtime().tm_mon, time.localtime().tm_mday,
+                                               time.localtime().tm_hour, time.localtime().tm_min, time.localtime().tm_sec)))
+        real_timer.start(500)
 
         # 创建布局管理器
         self.layout1 = QBoxLayout(QBoxLayout.TopToBottom)
@@ -262,36 +282,115 @@ class Little_tool(QWidget):
         custom_frame.setFrameShape(QFrame.Panel)
         custom_frame.setFrameShadow(QFrame.Raised)
 
-        custom_frame1 = QFrame()
-        custom_frame1.setFrameShape(QFrame.Panel)
-        custom_frame1.setFrameShadow(QFrame.Raised)
+        self.gridLayout = QGridLayout(custom_frame)
+        self.gridLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout.setObjectName("gridLayout")
+        self.ser_databit = QtWidgets.QComboBox(custom_frame)
+        self.ser_databit.setObjectName("ser_databit")
+        self.gridLayout.addWidget(self.ser_databit, 5, 1, 1, 1)
+        self.label_4 = QtWidgets.QLabel(custom_frame)
+        self.label_4.setObjectName("label_4")
+        self.gridLayout.addWidget(self.label_4, 6, 0, 1, 1)
+        self.label_5 = QtWidgets.QLabel(custom_frame)
+        self.label_5.setObjectName("label_5")
+        self.gridLayout.addWidget(self.label_5, 7, 0, 1, 1)
+        self.ser_display_lineedit = QtWidgets.QLineEdit(custom_frame)
+        self.ser_display_lineedit.setObjectName("ser_display")
+        self.gridLayout.addWidget(self.ser_display_lineedit, 6, 2, 1, 4)
+        self.ser_refresh = QtWidgets.QPushButton(custom_frame)
+        self.ser_refresh.setObjectName("ser_refresh")
+        self.gridLayout.addWidget(self.ser_refresh, 1, 3, 1, 1)
+        self.ser_stopbit = QtWidgets.QComboBox(custom_frame)
+        self.ser_stopbit.setObjectName("ser_stopbit")
+        self.gridLayout.addWidget(self.ser_stopbit, 6, 1, 1, 1)
+        self.ser_sendtimer = QtWidgets.QCheckBox(custom_frame)
+        self.ser_sendtimer.setObjectName("ser_sendtimer")
+        self.gridLayout.addWidget(self.ser_sendtimer, 4, 2, 1, 1)
+        self.ser_checkbit = QtWidgets.QComboBox(custom_frame)
+        self.ser_checkbit.setObjectName("ser_checkbit")
+        self.gridLayout.addWidget(self.ser_checkbit, 7, 1, 1, 1)
+        self.ser_hex_display = QtWidgets.QCheckBox(custom_frame)
+        self.ser_hex_display.setObjectName("ser_hex_display")
+        self.gridLayout.addWidget(self.ser_hex_display, 1, 4, 1, 2)
+        self.label_7 = QtWidgets.QLabel(custom_frame)
+        self.label_7.setObjectName("label_7")
+        self.gridLayout.addWidget(self.label_7, 5, 2, 1, 4)
+        self.ser_num = QtWidgets.QComboBox(custom_frame)
+        self.ser_num.setObjectName("ser_num")
+        self.gridLayout.addWidget(self.ser_num, 1, 1, 1, 1)
+        self.label_2 = QtWidgets.QLabel(custom_frame)
+        self.label_2.setObjectName("label_2")
+        self.gridLayout.addWidget(self.label_2, 4, 0, 1, 1)
+        self.label_6 = QtWidgets.QLabel(custom_frame)
+        self.label_6.setObjectName("label_6")
+        self.gridLayout.addWidget(self.label_6, 4, 4, 1, 1)
+        self.ser_clearbtn = QtWidgets.QPushButton(custom_frame)
+        self.ser_clearbtn.setObjectName("ser_clearbtn")
+        self.gridLayout.addWidget(self.ser_clearbtn, 1, 6, 1, 1)
+        self.textEdit = QtWidgets.QTextEdit(custom_frame)
+        self.textEdit.setObjectName("textEdit")
+        self.gridLayout.addWidget(self.textEdit, 0, 0, 1, 7)
+        self.label = QtWidgets.QLabel(custom_frame)
+        self.label.setObjectName("label")
+        self.gridLayout.addWidget(self.label, 1, 0, 1, 1)
+        self.ser_file_select = QtWidgets.QLineEdit(custom_frame)
+        self.ser_file_select.setObjectName("ser_file_select")
+        self.gridLayout.addWidget(self.ser_file_select, 11, 0, 1, 6)
+        self.set_openbtn = QtWidgets.QPushButton(custom_frame)
+        self.set_openbtn.setObjectName("set_openbtn")
+        self.gridLayout.addWidget(self.set_openbtn, 1, 2, 1, 1)
+        self.ser_sendbtn = QtWidgets.QPushButton(custom_frame)
+        self.ser_sendbtn.setObjectName("ser_sendbtn")
+        self.gridLayout.addWidget(self.ser_sendbtn, 5, 6, 1, 1)
+        self.ser_sendtmr_time = QtWidgets.QLineEdit(custom_frame)
+        self.ser_sendtmr_time.setEnabled(True)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.ser_sendtmr_time.sizePolicy().hasHeightForWidth())
+        self.ser_sendtmr_time.setSizePolicy(sizePolicy)
+        self.ser_sendtmr_time.setObjectName("ser_sendtmr_time")
+        self.gridLayout.addWidget(self.ser_sendtmr_time, 4, 3, 1, 1)
+        self.ser_bdrate = QtWidgets.QComboBox(custom_frame)
+        self.ser_bdrate.setObjectName("ser_bdrate")
+        self.gridLayout.addWidget(self.ser_bdrate, 4, 1, 1, 1)
+        self.checkBox_3 = QtWidgets.QCheckBox(custom_frame)
+        self.checkBox_3.setObjectName("checkBox_3")
+        self.gridLayout.addWidget(self.checkBox_3, 7, 2, 1, 1)
+        self.label_3 = QtWidgets.QLabel(custom_frame)
+        self.label_3.setObjectName("label_3")
+        self.gridLayout.addWidget(self.label_3, 5, 0, 1, 1)
+        self.ser_send_filebtn = QtWidgets.QPushButton(custom_frame)
+        self.ser_send_filebtn.setObjectName("ser_send_filebtn")
+        self.gridLayout.addWidget(self.ser_send_filebtn, 10, 6, 1, 1)
+        self.ser_rw_combo = QtWidgets.QComboBox(custom_frame)
+        self.ser_rw_combo.setObjectName("ser_rw_combo")
+        self.gridLayout.addWidget(self.ser_rw_combo, 10, 5, 1, 1)
+        self.ser_rw_checkbox = QtWidgets.QCheckBox(custom_frame)
+        self.ser_rw_checkbox.setObjectName("ser_rw_checkbox")
+        self.gridLayout.addWidget(self.ser_rw_checkbox, 10, 0, 1, 1)
+        self.ser_file_select_btn = QtWidgets.QPushButton(custom_frame)
+        self.ser_file_select_btn.setObjectName("ser_file_select_btn")
+        self.gridLayout.addWidget(self.ser_file_select_btn, 11, 6, 1, 1)
 
-        custom_frame2 = QFrame()
-        custom_frame2.setFrameShape(QFrame.Panel)
-        custom_frame2.setFrameShadow(QFrame.Raised)
-
-        custom_frame3 = QFrame()
-        custom_frame3.setFrameShape(QFrame.Panel)
-        custom_frame3.setFrameShadow(QFrame.Raised)
-
-        # 创建布局管理器
-        layout2 = QBoxLayout(QBoxLayout.TopToBottom)
-
-        # 给管理器对象设置父控件
-        custom_frame.setLayout(layout2)
-        """
-        使用了父类为QMainWindow的话，在里面使用布局类，QGridLayout， QHBoxLayout ，QVBoxLayout 等等时，发现不好用，
-        加上下面这句代码就可以了，QMainWindow对象.setCentralWidget(这里填布局管理器的父控件对象)
-        """
-        main_frame2.setCentralWidget(custom_frame)
-
-        # 把子控件添加到布局管理器中
-        layout2.addWidget(custom_frame1, 1)
-        layout2.addWidget(custom_frame2, 1)
-        layout2.addWidget(custom_frame3, 1)
-
-        layout2.setContentsMargins(0, 0, 0, 0)  # 设置布局的左上右下外边距
-        layout2.setSpacing(0)  # 设置子控件的内边距
+        self.label_4.setText("停止位")
+        self.label_5.setText("校验位")
+        self.ser_refresh.setText("刷新串口")
+        self.ser_sendtimer.setText("定时发送")
+        self.ser_hex_display.setText("Hex显示")
+        self.label_7.setText("字符串输入框")
+        self.label_2.setText("波特率")
+        self.label_6.setText("ms/次")
+        self.ser_clearbtn.setText("清除窗口")
+        self.label.setText("串口号")
+        self.set_openbtn.setText("打开串口")
+        self.ser_sendbtn.setText("发送")
+        self.checkBox_3.setText("Hex发送")
+        self.label_3.setText("数据位")
+        self.ser_send_filebtn.setText("发送文件")
+        self.ser_rw_checkbox.setText("选中读写文件")
+        self.ser_file_select_btn.setText("...")
 
         frame2_bar_frame = QFrame(main_frame2)
         frame2_bar_frame.setGeometry(0, frame.height(), self.width(), 25)
@@ -313,7 +412,21 @@ class Little_tool(QWidget):
         QMessageBox.about(self, "反馈", "抱歉无法反馈")
 
     def click_about(self, event):
-        QMessageBox.about(self, "关于", "抱歉，没有文档")
+        #QMessageBox.about(self, "关于", "抱歉，没有文档")
+        from ex_pygui.time_display import Ui_Dialog  # 显示自定义的弹出窗口
+        self.di = QDialog()
+        timedisplay = Ui_Dialog()
+        timedisplay.setupUi(self.di)
+        now = time.localtime()
+        timedisplay.label.setText('%02d:%02d:%02d' %(now.tm_hour, now.tm_min, now.tm_sec))
+        timedisplay.pushButton.clicked.connect(self.di.close)
+        self.di.setWindowModality(Qt.ApplicationModal) #锁定子窗口，关闭子窗口后才可以操作父窗口
+
+        self.di.show()
+
+        abot_timer = QTimer(self.di)
+        abot_timer.timeout.connect(lambda :timedisplay.label.setText('%02d:%02d:%02d' %(time.localtime().tm_hour, time.localtime().tm_min, time.localtime().tm_sec)))
+        abot_timer.start(1000)
 
     def add_file_select(self):
         self.layout_count += 1
@@ -557,7 +670,6 @@ class Little_tool(QWidget):
         self.ed.delete(param)
         self.ed.insert(self.lineedit_list[param].text(), str, param)
         self.ed.dbDump()
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

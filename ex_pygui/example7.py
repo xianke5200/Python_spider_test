@@ -20,8 +20,8 @@ class Example(QWidget):
         #self.showCheckbox()
         #self.showbutton()
         #self.showslider()
-        #self.showprogress()
-        self.showcalendar()
+        self.showprogress()
+        #self.showcalendar()
 
         self.setGeometry(300, 300, 250, 150)
         self.show()
