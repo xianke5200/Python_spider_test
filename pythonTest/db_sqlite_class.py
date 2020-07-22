@@ -34,6 +34,12 @@ class db_sqlite_class():
     def delete(self, dbCmd, *args, **kwargs):
         self.cur.execute(dbCmd, *args, **kwargs)
 
+    def query(self, dbCmd, *args, **kwargs):
+        self.cur.execute(dbCmd, *args, **kwargs)
+        return self.cur.fetchall()
+        # for data in self.cur.fetchall():
+        #     return (tuple(str(s).title().ljust(self.colsize) for s in data))
+
     def delete_all(self):
         dumpCmd = 'DELETE FROM %s' % self.tableName
         self.cur.execute(dumpCmd)
@@ -57,3 +63,7 @@ class db_sqlite_class():
         self.cur.close()
         self.cxn.commit()
         self.cxn.close()
+
+    def remove(self):
+        if os.path.exists(os.path.join(self.dbDir, self.dbName)):
+            os.remove(os.path.join(self.dbDir, self.dbName))
