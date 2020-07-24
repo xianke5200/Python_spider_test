@@ -446,6 +446,7 @@ class Little_tool(QWidget):
 
         self.sendfile_time_lable = QLabel(self.rom_frame)
         self.sendfile_time_lable.setText('文件发送时长: 0ms' )
+        self.sendfile_time_lable.setVisible(False)
         self.sendfile_time_lable.setGeometry(100, frame.height(), 50, 25)
         frame2_bar.addPermanentWidget(self.sendfile_time_lable)
 
@@ -1015,6 +1016,7 @@ class Little_tool(QWidget):
             self.ser_rw_combo.setEnabled(False)
             self.ser_send_filebtn.setEnabled(False)
             self.send_bar.setVisible(False)
+            self.sendfile_time_lable.setVisible(False)
         self.read_data_file = False
 
     def ser_rw_combo_changed(self, str):
@@ -1061,6 +1063,7 @@ class Little_tool(QWidget):
                     QMessageBox.critical(self, '文件发送失败', '文件不存在或已被其他程序打开')
                     return
                 self.send_bar.setVisible(True)
+                self.sendfile_time_lable.setVisible(True)
                 self.sendfile_tmr.start(100)
             else:
                 self.is_sendfile = False
@@ -1072,6 +1075,7 @@ class Little_tool(QWidget):
                 self.ser_file_select.setEnabled(True)
         elif self.ser_rw_combo.currentText() == '读取文件':
             self.send_bar.setVisible(False)
+            self.sendfile_time_lable.setVisible(False)
             if self.read_data_file == False:
                 self.read_data_file = True
                 self.ser_send_filebtn.setText('停止')
@@ -1084,6 +1088,7 @@ class Little_tool(QWidget):
                 self.rfile.close()
         else:
             self.send_bar.setVisible(False)
+            self.sendfile_time_lable.setVisible(False)
             self.ser_send_filebtn.setText('读写文件')
             self.read_data_file = False
 
@@ -1118,6 +1123,7 @@ class Little_tool(QWidget):
             self.sendfile_tmr.stop()
             self.ser_send_filebtn.setText('发送文件')
             self.send_bar.setVisible(False)
+            self.sendfile_time_lable.setVisible(False)
             QMessageBox.critical(self, '文件发送失败', '文件不存在或已被其他程序打开')
             return
         self.ser_file_select.setEnabled(False)
