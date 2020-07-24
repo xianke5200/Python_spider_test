@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>825</width>
-    <height>709</height>
+    <width>817</width>
+    <height>717</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>0</x>
@@ -125,13 +125,6 @@
        </property>
       </widget>
      </item>
-     <item row="5" column="6">
-      <widget class="QPushButton" name="ser_sendbtn">
-       <property name="text">
-        <string>发送</string>
-       </property>
-      </widget>
-     </item>
      <item row="4" column="3">
       <widget class="QLineEdit" name="ser_sendtmr_time">
        <property name="enabled">
@@ -149,7 +142,7 @@
       <widget class="QComboBox" name="ser_bdrate"/>
      </item>
      <item row="7" column="2">
-      <widget class="QCheckBox" name="checkBox_3">
+      <widget class="QCheckBox" name="ser_sendhex">
        <property name="text">
         <string>Hex发送</string>
        </property>
@@ -186,6 +179,20 @@
        </property>
       </widget>
      </item>
+     <item row="6" column="6">
+      <widget class="QPushButton" name="ser_sendbtn">
+       <property name="text">
+        <string>发送</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="5">
+      <widget class="QCheckBox" name="send_with_enter">
+       <property name="text">
+        <string>加回车换行</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -194,7 +201,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>825</width>
+     <width>817</width>
      <height>23</height>
     </rect>
    </property>
