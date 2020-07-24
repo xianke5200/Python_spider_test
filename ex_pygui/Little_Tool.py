@@ -833,7 +833,7 @@ class Little_tool(QWidget):
             #     self.ser_thread_working = True
             #     self.ser_thread.start()
             # self.ser_thread.resume()
-            self.recvtmr.start(0.002)
+            self.recvtmr.start(0.001)
         else:
             self.recvtmr.stop()
             # self.ser_thread.pause()
