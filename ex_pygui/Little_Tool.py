@@ -518,6 +518,7 @@ class Little_tool(QWidget):
         # self.ser.close()
         self.ser_recv_datalen = 0
         self.ser_send_datalen = 0
+        self.read_data_file = False
 
         frame2_bar_frame = QFrame(main_frame2)
         frame2_bar_frame.setGeometry(0, frame.height(), self.width(), 25)
@@ -1039,6 +1040,8 @@ class Little_tool(QWidget):
             self.ser_send_filebtn.setText(str)
         else:
             self.ser_send_filebtn.setText('读写文件')
+            self.send_bar.setVisible(False)
+            self.sendfile_time_lable.setVisible(False)
 
     def ser_rw_sendfile_btn_clicked(self):
         """
@@ -1074,7 +1077,9 @@ class Little_tool(QWidget):
                     self.ser_send_filebtn.setText('发送文件')
                     QMessageBox.critical(self, '文件发送失败', '文件不存在或已被其他程序打开')
                     return
+                self.ser_rw_combo.setEnabled(False)
                 self.send_bar.setVisible(True)
+                self.ser_file_select_btn.setEnabled(False)
                 self.sendfile_time_lable.setVisible(True)
                 self.sendfile_tmr.start(100)
             else:
@@ -1084,7 +1089,9 @@ class Little_tool(QWidget):
                 self.sendfile_tmr.stop()
                 self.sfile.close()
                 self.ser_send_filebtn.setText('发送文件')
+                self.ser_rw_combo.setEnabled(True)
                 self.ser_file_select.setEnabled(True)
+                self.ser_file_select_btn.setEnabled(True)
         elif self.ser_rw_combo.currentText() == '读取文件':
             self.send_bar.setVisible(False)
             self.sendfile_time_lable.setVisible(False)
@@ -1136,6 +1143,8 @@ class Little_tool(QWidget):
             self.ser_send_filebtn.setText('发送文件')
             self.send_bar.setVisible(False)
             self.sendfile_time_lable.setVisible(False)
+            self.ser_file_select_btn.setEnabled(True)
+            self.ser_rw_combo.setEnabled(True)
             QMessageBox.critical(self, '文件发送失败', '文件不存在或已被其他程序打开')
             return
         self.ser_file_select.setEnabled(False)
@@ -1155,6 +1164,9 @@ class Little_tool(QWidget):
             self.ser_file_select.setEnabled(True)
             self.sendfile_tmr.stop()
             self.sfile.close()
+            self.ser_send_filebtn.setText('发送文件')
+            self.ser_file_select_btn.setEnabled(True)
+            self.ser_rw_combo.setEnabled(True)
             QMessageBox.about(self, '发送完成', '文件发送成功')
 
         # print(self.file_send_len, self.send_file_size)
