@@ -9,30 +9,27 @@ author: chenlue
 last edited: 2020年7月
 """
 import os
-import struct
 
 import xlrd
 import xlwt
-from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtCore import QUrl, QRect, QTimer, pyqtSignal, QThread
+from PyQt5 import QtWidgets, QtGui
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QButtonGroup, QFrame, QToolButton, QStackedLayout, \
     QWidget, QStatusBar, QBoxLayout, QLabel, QDesktopWidget, QMessageBox, QMenu, QAction, QFileDialog, QLineEdit, \
     QGridLayout, QComboBox, QDialog, QProgressBar
-from PyQt5.QtGui import QDesktopServices, QFont, QIcon, QTextCursor
+from PyQt5.QtGui import QFont, QIcon, QTextCursor
 from PyQt5.QtCore import Qt
 import time
 
-import pyqtgraph as pg
-import array
 import serial
 import threading
-import numpy as np
-from queue import Queue
 
 import serial.tools.list_ports
 
 import sys
-from ex_pygui.excel_db import excel_db
+
+from excel_db import excel_db
+from time_display import Ui_Dialog  # 显示自定义的弹出窗口
 
 baudrates = ['110', '300', '600', '1200',
             '2400', '4800', '9600', '14400',
@@ -542,7 +539,6 @@ class Little_tool(QWidget):
 
     def click_about(self, event):
         #QMessageBox.about(self, "关于", "抱歉，没有文档")
-        from ex_pygui.time_display import Ui_Dialog  # 显示自定义的弹出窗口
         self.di = QDialog()
         timedisplay = Ui_Dialog()
         timedisplay.setupUi(self.di)

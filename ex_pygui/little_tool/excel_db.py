@@ -1,7 +1,7 @@
 #!usr/bin/env python
 import os
 from random import randrange as rrange
-from pythonTest.db_sqlite_class import db_sqlite_class
+from db_sqlite_class import db_sqlite_class
 
 COLSIZ = 10
 
@@ -25,8 +25,7 @@ class excel_db():
                   [(filepath, language, index)])
 
     def getAll(self,index):
-        return self.db.query("SELECT * FROM %s" % self.table)
-
+        pass
     getRC = lambda cur: cur.rowcount if hasattr(cur, 'rowcount') else -1
 
     def delete(self, index):
