@@ -32,7 +32,6 @@ class excel_db():
         self.db.delete('DELETE FROM %s WHERE prid=%d' % (self.table, index))
         return
 
-
     def dbDump(self):
         print('\n%s%s%s' % ('FILE_PATH'.ljust(COLSIZ),
                             'LANG_TYPE'.ljust(COLSIZ), 'INDEX#'.ljust(COLSIZ)))

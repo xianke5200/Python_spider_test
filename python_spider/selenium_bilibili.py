@@ -3,12 +3,14 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 import xlwt
+import time
 
 browser = webdriver.Chrome()
 #browser = webdriver.PhantomJS()
-WAIT = WebDriverWait(browser, 5)
+WAIT = WebDriverWait(browser, 20)
 browser.set_window_size(1400, 900)
 
 book = xlwt.Workbook(encoding='utf-8', style_compression=0)
@@ -30,37 +32,57 @@ def search():
         browser.get("https://www.bilibili.com/")
 
         # 被那个破登录遮住了
-        index = WAIT.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#primary_menu > ul > li.home > a")))
-        index.click()
+        # index = WAIT.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#primary_menu > ul > li.home > a")))
+        # index.click()
 
-        input = WAIT.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#banner_link > div > div > form > input")))
-        submit = WAIT.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="banner_link"]/div/div/form/button')))
+        # input = WAIT.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#banner_link > div > div > form > input")))
+        # submit = WAIT.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="banner_link"]/div/div/form/button')))
 
-        input.send_keys('蔡徐坤 篮球')
-        submit.click()
+        search = browser.find_element_by_xpath('//div[@class="nav-search"]/form/input')
+        search.send_keys("蔡徐坤 篮球")
+        search.send_keys(Keys.ENTER)
+
+        # input.send_keys('蔡徐坤 篮球')
+        # submit.click()
 
         # 跳转到新的窗口
         print('跳转到新窗口')
         all_h = browser.window_handles
         browser.switch_to.window(all_h[1])
 
-        get_source()
-        total = WAIT.until(EC.presence_of_element_located((By.CSS_SELECTOR,
-                                                           "#server-search-app > div.contain > div.body-contain > div > div.page-wrap > div > ul > li.page-item.last > button")))
-        return int(total.text)
+        html = browser.page_source
+        # print(html)
+        soup = BeautifulSoup(html, 'html.parser')
+        save_to_excel(soup)
+        # get_source()
+        # total = WAIT.until(EC.presence_of_element_located((By.CSS_SELECTOR,
+        #                                                    "#server-search-app > div.contain > div.body-contain > div > div.page-wrap > div > ul > li.page-item.last > button")))
+        total_index = soup.find(class_='page-item last').find(class_='pagination-btn')
+        return int(total_index.text)
     except TimeoutException:
         return search()
 
 
 def next_page(page_num):
     try:
-        print('获取下一页数据')
+        print('获取第(%d)页数据' % page_num)
+        # next_btn = WAIT.until(EC.element_to_be_clickable((By.CSS_SELECTOR,
+        #                                                   '#server-search-app > div.contain > div.body-contain > div > div.page-wrap > div > ul > li.page-item.next > button')))
+        # next_btn.click()
+        # WAIT.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR,
+        #                                              '#server-search-app > div.contain > div.body-contain > div > div.page-wrap > div > ul > li.page-item.active > button'),
+        #                                             str(page_num)))
+
+        # search = browser.find_element_by_class_name('nav-btn')
+        # search = browser.find_element_by_xpath("//button[contains(@class, 'nav-btn')]")
         next_btn = WAIT.until(EC.element_to_be_clickable((By.CSS_SELECTOR,
-                                                          '#server-search-app > div.contain > div.body-contain > div > div.page-wrap > div > ul > li.page-item.next > button')))
+                                                          'li.page-item.next > button')))
+        # time.sleep(5)
         next_btn.click()
-        WAIT.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR,
-                                                     '#server-search-app > div.contain > div.body-contain > div > div.page-wrap > div > ul > li.page-item.active > button'),
-                                                    str(page_num)))
+        # search = WAIT.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR,
+        #                                           '#server-search-app > div.contain > div.body-contain > div > div.page-wrap > div > ul > li.page-item.active > button'),
+        #                                          str(page_num)))
+        # search.click()
         get_source()
     except TimeoutException:
         browser.refresh()
@@ -68,7 +90,7 @@ def next_page(page_num):
 
 
 def save_to_excel(soup):
-    list = soup.find(class_='all-contain').find_all(class_='info')
+    list = soup.find(class_='video-list clearfix').find_all_next(class_='info')
 
     for item in list:
         item_title = item.find('a').get('title')
@@ -94,24 +116,27 @@ def save_to_excel(soup):
 
 def get_source():
     WAIT.until(EC.presence_of_element_located(
-        (By.CSS_SELECTOR, '#server-search-app > div.contain > div.body-contain > div > div.result-wrap.clearfix')))
+        (By.CSS_SELECTOR, 'ul.video-list.clearfix')))
+    # browser.refresh()
     html = browser.page_source
-    soup = BeautifulSoup(html, 'lxml')
+    # print(html)
+    soup = BeautifulSoup(html, 'html.parser')
     save_to_excel(soup)
 
 
 def main():
     try:
         total = search()
-        print(total)
+        # print(total)
 
-        for i in range(2, int(total + 1)):
+        for i in range(2, int(total)+1):
             next_page(i)
 
     finally:
         browser.close()
+        browser.quit()
 
 
 if __name__ == '__main__':
     main()
-    book.save(u'蔡徐坤篮球.xlsx')
+    book.save(u'蔡徐坤篮球.xls')
