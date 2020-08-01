@@ -7,6 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 import xlwt
 import time
+import re
 
 browser = webdriver.Chrome()
 #browser = webdriver.PhantomJS()
@@ -31,33 +32,27 @@ def search():
         print('开始访问b站....')
         browser.get("https://www.bilibili.com/")
 
-        # 被那个破登录遮住了
-        # index = WAIT.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#primary_menu > ul > li.home > a")))
-        # index.click()
-
-        # input = WAIT.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#banner_link > div > div > form > input")))
-        # submit = WAIT.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="banner_link"]/div/div/form/button')))
-
         search = browser.find_element_by_xpath('//div[@class="nav-search"]/form/input')
         search.send_keys("蔡徐坤 篮球")
         search.send_keys(Keys.ENTER)
-
-        # input.send_keys('蔡徐坤 篮球')
-        # submit.click()
 
         # 跳转到新的窗口
         print('跳转到新窗口')
         all_h = browser.window_handles
         browser.switch_to.window(all_h[1])
 
-        html = browser.page_source
-        # print(html)
-        soup = BeautifulSoup(html, 'html.parser')
-        save_to_excel(soup)
-        # get_source()
-        # total = WAIT.until(EC.presence_of_element_located((By.CSS_SELECTOR,
-        #                                                    "#server-search-app > div.contain > div.body-contain > div > div.page-wrap > div > ul > li.page-item.last > button")))
-        total_index = soup.find(class_='page-item last').find(class_='pagination-btn')
+        # html = browser.page_source
+        # # print(html)
+        # soup = BeautifulSoup(html, 'html.parser')
+        # save_to_excel(soup)
+        # total_index = soup.find(class_='page-item last').find(class_='pagination-btn')
+
+        get_source()
+        total_index = WAIT.until(EC.presence_of_element_located((By.CSS_SELECTOR,
+                                                                 "li.page-item.last > button")))
+
+        # pattern = re.compile('<div class="page-wrap">.*?<li class="page-item last">.*?(\d+).*?</div>', re.S)
+        # total_index = int(re.findall(pattern, html)[0])
         return int(total_index.text)
     except TimeoutException:
         return search()
@@ -66,23 +61,9 @@ def search():
 def next_page(page_num):
     try:
         print('获取第(%d)页数据' % page_num)
-        # next_btn = WAIT.until(EC.element_to_be_clickable((By.CSS_SELECTOR,
-        #                                                   '#server-search-app > div.contain > div.body-contain > div > div.page-wrap > div > ul > li.page-item.next > button')))
-        # next_btn.click()
-        # WAIT.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR,
-        #                                              '#server-search-app > div.contain > div.body-contain > div > div.page-wrap > div > ul > li.page-item.active > button'),
-        #                                             str(page_num)))
-
-        # search = browser.find_element_by_class_name('nav-btn')
-        # search = browser.find_element_by_xpath("//button[contains(@class, 'nav-btn')]")
         next_btn = WAIT.until(EC.element_to_be_clickable((By.CSS_SELECTOR,
                                                           'li.page-item.next > button')))
-        # time.sleep(5)
         next_btn.click()
-        # search = WAIT.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR,
-        #                                           '#server-search-app > div.contain > div.body-contain > div > div.page-wrap > div > ul > li.page-item.active > button'),
-        #                                          str(page_num)))
-        # search.click()
         get_source()
     except TimeoutException:
         browser.refresh()
