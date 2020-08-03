@@ -4,12 +4,17 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 import xlwt
 import time
 import re
+import requests
+import os
 
-browser = webdriver.Chrome()
+chrome_options = Options()
+chrome_options.add_argument('--headless')
+browser = webdriver.Chrome(chrome_options=chrome_options)
 #browser = webdriver.PhantomJS()
 WAIT = WebDriverWait(browser, 20)
 browser.set_window_size(1400, 900)
@@ -25,7 +30,6 @@ sheet.write(0, 4, '弹幕数')
 sheet.write(0, 5, '发布时间')
 
 n = 1
-
 
 def search():
     try:
@@ -94,6 +98,41 @@ def save_to_excel(soup):
 
         n = n + 1
 
+def img_save(soup):
+    img_url_list = soup.find(class_='video-list clearfix').find_all_next(class_='img-anchor')
+    index = 0
+    for url in img_url_list:
+        img_url = url.find('img').get('src')
+        print(img_url)
+        if img_url != '':
+            img_request = ('https:'+ img_url).replace('webp', 'jpg')
+            print(img_request)
+            img_resp = requests.get(img_request)
+
+            if not os.path.exists("cxk_video_img"):
+                os.mkdir('cxk_video_img')
+            with open('cxk_video_img/%d.jpg' %index, 'wb') as f:
+                f.write(img_resp.content)
+        index += 1
+        time.sleep(1)
+
+def video_save(soup):
+    video_url_list = soup.find(class_='video-list clearfix').find_all_next(class_='info')
+    index = 0
+    for url in video_url_list:
+        video_url = url.find('a').get('href')
+        print(video_url)
+        if video_url != None:
+            video_request = 'https:'+ video_url
+            print(video_request)
+            video_resp = requests.get(video_request)
+
+            if not os.path.exists("cxk_video_img"):
+                os.mkdir('cxk_video_img')
+            with open('cxk_video_img/%d.mp4' %index, 'wb') as f:
+                f.write(video_resp.content)
+        index += 1
+        time.sleep(1)
 
 def get_source():
     WAIT.until(EC.presence_of_element_located(
@@ -101,8 +140,10 @@ def get_source():
     # browser.refresh()
     html = browser.page_source
     # print(html)
-    soup = BeautifulSoup(html, 'html.parser')
+    soup = BeautifulSoup(html, 'lxml')
     save_to_excel(soup)
+    img_save(soup)
+    # video_save(soup)
 
 
 def main():
