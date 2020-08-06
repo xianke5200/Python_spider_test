@@ -17,8 +17,11 @@ from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QButtonGroup, QFrame, QToolButton, QStackedLayout, \
     QWidget, QStatusBar, QBoxLayout, QLabel, QDesktopWidget, QMessageBox, QMenu, QAction, QFileDialog, QLineEdit, \
     QGridLayout, QComboBox, QDialog, QProgressBar
+from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QFont, QIcon, QTextCursor
 from PyQt5.QtCore import Qt
+
+from PIL import Image
 import time
 
 import serial
@@ -68,6 +71,12 @@ class Little_tool(QWidget):
         self.ed = excel_db() #创建数据库
         self.ed.connect()
         self.ed.create()
+
+        self.filepath_list = []
+        self.filename_list = []
+
+        self.filepath_bin_list = []
+        self.filename_bin_list = []
 
         self.center()
 
@@ -125,6 +134,12 @@ class Little_tool(QWidget):
         self.quit_btn.setGeometry(e.size().width() * 0.6, e.size().height() * 0.8, 100, 40)
 
         self.custom_frame.resize(e.size().width(), e.size().height()-50)
+        self.picbin_frame.resize(e.size().width(), e.size().height() - 50)
+
+    # def keyPressEvent(self, a0: QtGui.QKeyEvent):
+    #     self.textEdit.keyPressEvent(a0)
+    #     if a0.type() == a0.KeyPress:
+    #         print('key press')
 
     def __setup_ui__(self):
         # 工具栏
@@ -154,9 +169,20 @@ class Little_tool(QWidget):
         self.window2_btn.clicked.connect(self.click_window2)
         self.window2_btn.setAutoRaise(True)
 
+        # 1.3 界面3按钮
+        self.window3_btn = QToolButton(self.frame_tool)
+        self.window3_btn.setCheckable(True)
+        self.window3_btn.setText("图片转换")
+        self.window3_btn.setObjectName("menu_btn")
+        self.window3_btn.resize(100, 25)
+        self.window3_btn.move(self.window2_btn.x() + self.window2_btn.width(), 0)
+        self.window3_btn.clicked.connect(self.click_window3)
+        self.window3_btn.setAutoRaise(True)
+
         self.btn_group = QButtonGroup(self.frame_tool)
         self.btn_group.addButton(self.window1_btn, 1)
         self.btn_group.addButton(self.window2_btn, 2)
+        self.btn_group.addButton(self.window3_btn, 3)
 
         # 1.3 帮助下拉菜单栏
         # 创建帮助工具按钮
@@ -164,7 +190,7 @@ class Little_tool(QWidget):
         help_btn.setText("帮助")
         help_btn.setObjectName("menu_btn")
         help_btn.resize(100, 25)
-        help_btn.move(self.window2_btn.x() + self.window2_btn.width(), 0)
+        help_btn.move(self.window3_btn.x() + self.window3_btn.width(), 0)
         help_btn.setAutoRaise(True)
         help_btn.setPopupMode(QToolButton.InstantPopup)
         # 创建关于菜单
@@ -190,10 +216,12 @@ class Little_tool(QWidget):
 
         main_frame1 = self.window1_UI(self.main_frame)
         main_frame2 = self.window2_UI(self.main_frame)
+        main_frame3 = self.window3_UI(self.main_frame)
 
         # 把两个布局放进去
         self.stacked_layout.addWidget(main_frame1)
         self.stacked_layout.addWidget(main_frame2)
+        self.stacked_layout.addWidget(main_frame3)
 
         # self.layout = QBoxLayout(QBoxLayout.BottomToTop)
         # self.layout_test = QBoxLayout(QBoxLayout.LeftToRight)
@@ -205,6 +233,41 @@ class Little_tool(QWidget):
         # self.layout_test.addWidget(help_btn)
         # self.layout.addLayout(self.layout_test)
         # self.layout.addLayout(self.stacked_layout)
+
+    def click_window1(self):
+        if self.stacked_layout.currentIndex() != 0:
+            self.stacked_layout.setCurrentIndex(0)
+            #self.frame1_bar.showMessage("欢迎使用")
+
+    def click_window2(self):
+        if self.stacked_layout.currentIndex() != 1:
+            self.stacked_layout.setCurrentIndex(1)
+            self.serial_update()
+            #self.frame2_bar.showMessage("欢迎进入frame2")
+            #QDesktopServices.openUrl(QUrl("https://www.csdn.net/"))  # 点击window2按钮后，执行这个槽函数的时候，会在浏览器自动打开这个网址
+
+    def click_window3(self):
+        if self.stacked_layout.currentIndex() != 2:
+            self.stacked_layout.setCurrentIndex(2)
+
+    def click_feedback(self, event):
+        QMessageBox.about(self, "反馈", "抱歉无法反馈")
+
+    def click_about(self, event):
+        #QMessageBox.about(self, "关于", "抱歉，没有文档")
+        self.di = QDialog()
+        timedisplay = Ui_Dialog()
+        timedisplay.setupUi(self.di)
+        now = time.localtime()
+        timedisplay.label.setText('%02d:%02d:%02d' %(now.tm_hour, now.tm_min, now.tm_sec))
+        timedisplay.pushButton.clicked.connect(self.di.close)
+        self.di.setWindowModality(Qt.ApplicationModal) #锁定子窗口，关闭子窗口后才可以操作父窗口
+
+        self.di.show()
+
+        abot_timer = QTimer(self.di)
+        abot_timer.timeout.connect(lambda :timedisplay.label.setText('%02d:%02d:%02d' %(time.localtime().tm_hour, time.localtime().tm_min, time.localtime().tm_sec)))
+        abot_timer.start(1000)
 
     def window1_UI(self, frame):
         """
@@ -324,234 +387,6 @@ class Little_tool(QWidget):
         frame1_bar_frame.setGeometry(0, frame.height(), self.width(), 25)
 
         return main_frame1
-
-    def window2_UI(self, frame):
-        """
-            串口程序UI布局
-        """
-        # 第二个布局
-        main_frame2 = QMainWindow()
-        frame2_bar = QStatusBar()
-        frame2_bar.setObjectName("frame2_bar")
-        main_frame2.setStatusBar(frame2_bar)
-        frame2_bar.showMessage("欢迎进入串口小工具")
-
-        self.custom_frame = QFrame(main_frame2)
-        self.custom_frame.setGeometry(0, 0, self.width(), frame.height() - 25)
-        self.custom_frame.setFrameShape(QFrame.Panel)
-        self.custom_frame.setFrameShadow(QFrame.Raised)
-
-        self.gridLayout = QGridLayout(self.custom_frame)
-        self.gridLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-        self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        self.gridLayout.setObjectName("gridLayout")
-        self.ser_databit = QtWidgets.QComboBox(self.custom_frame)
-        self.ser_databit.setObjectName("ser_databit")
-        self.gridLayout.addWidget(self.ser_databit, 5, 1, 1, 1)
-        self.label_4 = QtWidgets.QLabel(self.custom_frame)
-        self.label_4.setObjectName("label_4")
-        self.gridLayout.addWidget(self.label_4, 6, 0, 1, 1)
-        self.label_5 = QtWidgets.QLabel(self.custom_frame)
-        self.label_5.setObjectName("label_5")
-        self.gridLayout.addWidget(self.label_5, 7, 0, 1, 1)
-        self.ser_display_lineedit = QtWidgets.QLineEdit(self.custom_frame)
-        self.ser_display_lineedit.setObjectName("ser_display")
-        self.gridLayout.addWidget(self.ser_display_lineedit, 6, 2, 1, 4)
-        self.ser_refresh = QtWidgets.QPushButton(self.custom_frame)
-        self.ser_refresh.setObjectName("ser_refresh")
-        self.ser_refresh.clicked.connect(self.serial_update)
-        self.gridLayout.addWidget(self.ser_refresh, 1, 3, 1, 1)
-        self.ser_stopbit = QtWidgets.QComboBox(self.custom_frame)
-        self.ser_stopbit.setObjectName("ser_stopbit")
-        self.gridLayout.addWidget(self.ser_stopbit, 6, 1, 1, 1)
-        self.ser_sendtimer = QtWidgets.QCheckBox(self.custom_frame)
-        self.ser_sendtimer.setObjectName("ser_sendtimer")
-        self.ser_sendtimer.stateChanged.connect(self.sendtmr_switch)
-        self.gridLayout.addWidget(self.ser_sendtimer, 4, 2, 1, 1)
-        self.ser_checkbit = QtWidgets.QComboBox(self.custom_frame)
-        self.ser_checkbit.setObjectName("ser_checkbit")
-        self.gridLayout.addWidget(self.ser_checkbit, 7, 1, 1, 1)
-        self.ser_hex_display = QtWidgets.QCheckBox(self.custom_frame)
-        self.ser_hex_display.setObjectName("ser_hex_display")
-        self.ser_hex_display.stateChanged.connect(self.rdata2hex)
-        self.gridLayout.addWidget(self.ser_hex_display, 1, 4, 1, 2)
-        self.label_7 = QtWidgets.QLabel(self.custom_frame)
-        self.label_7.setObjectName("label_7")
-        self.gridLayout.addWidget(self.label_7, 5, 2, 1, 4)
-        self.ser_num = QtWidgets.QComboBox(self.custom_frame)
-        self.ser_num.setObjectName("ser_num")
-        self.gridLayout.addWidget(self.ser_num, 1, 1, 1, 1)
-        self.label_2 = QtWidgets.QLabel(self.custom_frame)
-        self.label_2.setObjectName("label_2")
-        self.gridLayout.addWidget(self.label_2, 4, 0, 1, 1)
-        self.label_6 = QtWidgets.QLabel(self.custom_frame)
-        self.label_6.setObjectName("label_6")
-        self.gridLayout.addWidget(self.label_6, 4, 4, 1, 1)
-        self.ser_clearbtn = QtWidgets.QPushButton(self.custom_frame)
-        self.ser_clearbtn.setObjectName("ser_clearbtn")
-        self.ser_clearbtn.clicked.connect(self.ser_textedit_clear)
-        self.gridLayout.addWidget(self.ser_clearbtn, 1, 6, 1, 1)
-        self.textEdit = QtWidgets.QTextEdit(self.custom_frame)
-        self.textEdit.setObjectName("textEdit")
-        self.textEdit.setFocusPolicy(Qt.NoFocus)
-        self.gridLayout.addWidget(self.textEdit, 0, 0, 1, 7)
-        self.label = QtWidgets.QLabel(self.custom_frame)
-        self.label.setObjectName("label")
-        self.gridLayout.addWidget(self.label, 1, 0, 1, 1)
-        self.ser_file_select = QtWidgets.QLineEdit(self.custom_frame)
-        self.ser_file_select.setObjectName("ser_file_select")
-        self.gridLayout.addWidget(self.ser_file_select, 11, 0, 1, 6)
-        self.set_openbtn = QtWidgets.QPushButton(self.custom_frame)
-        self.set_openbtn.setObjectName("set_openbtn")
-        self.set_openbtn.clicked.connect(self.oc_serial)
-        self.gridLayout.addWidget(self.set_openbtn, 1, 2, 1, 1)
-        self.ser_sendbtn = QtWidgets.QPushButton(self.custom_frame)
-        self.ser_sendbtn.setObjectName("ser_sendbtn")
-        self.ser_sendbtn.setEnabled(False)
-        self.ser_sendbtn.clicked.connect(self.ser_senddata)
-        self.gridLayout.addWidget(self.ser_sendbtn, 6, 6, 1, 1)
-        self.ser_sendtmr_time = QtWidgets.QLineEdit(self.custom_frame)
-        self.ser_sendtmr_time.setEnabled(True)
-        self.ser_sendtmr_time.setText('100')
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.ser_sendtmr_time.sizePolicy().hasHeightForWidth())
-        self.ser_sendtmr_time.setSizePolicy(sizePolicy)
-        self.ser_sendtmr_time.setObjectName("ser_sendtmr_time")
-        self.ser_sendtmr_time.textChanged.connect(self.sendtmr_switch)
-        self.gridLayout.addWidget(self.ser_sendtmr_time, 4, 3, 1, 1)
-        self.ser_bdrate = QtWidgets.QComboBox(self.custom_frame)
-        self.ser_bdrate.setObjectName("ser_bdrate")
-        self.gridLayout.addWidget(self.ser_bdrate, 4, 1, 1, 1)
-        self.ser_sendhex = QtWidgets.QCheckBox(self.custom_frame)
-        self.ser_sendhex.setObjectName("ser_sendhex")
-        self.ser_sendhex.stateChanged.connect(self.sdata2hex)
-        self.gridLayout.addWidget(self.ser_sendhex, 7, 2, 1, 1)
-        self.label_3 = QtWidgets.QLabel(self.custom_frame)
-        self.label_3.setObjectName("label_3")
-        self.gridLayout.addWidget(self.label_3, 5, 0, 1, 1)
-        self.ser_send_filebtn = QtWidgets.QPushButton(self.custom_frame)
-        self.ser_send_filebtn.setObjectName("ser_send_filebtn")
-        self.ser_send_filebtn.setEnabled(False)
-        self.ser_send_filebtn.clicked.connect(self.ser_rw_sendfile_btn_clicked)
-        self.gridLayout.addWidget(self.ser_send_filebtn, 10, 6, 1, 1)
-        self.ser_rw_combo = QtWidgets.QComboBox(self.custom_frame)
-        self.ser_rw_combo.setObjectName("ser_rw_combo")
-        self.ser_rw_combo.setEnabled(False)
-        self.ser_rw_combo.activated[str].connect(self.ser_rw_combo_changed)
-        self.gridLayout.addWidget(self.ser_rw_combo, 10, 5, 1, 1)
-        self.ser_rw_checkbox = QtWidgets.QCheckBox(self.custom_frame)
-        self.ser_rw_checkbox.setObjectName("ser_rw_checkbox")
-        self.ser_rw_checkbox.stateChanged.connect(self.send_file_select)
-        self.gridLayout.addWidget(self.ser_rw_checkbox, 10, 0, 1, 1)
-        self.ser_file_select_btn = QtWidgets.QPushButton(self.custom_frame)
-        self.ser_file_select_btn.setObjectName("ser_file_select_btn")
-        self.ser_file_select_btn.clicked.connect(self.ser_rw_selectbtn_clicked)
-        self.gridLayout.addWidget(self.ser_file_select_btn, 11, 6, 1, 1)
-        self.send_with_enter = QtWidgets.QCheckBox(self.custom_frame)
-        self.send_with_enter.setObjectName("send_with_enter")
-        self.gridLayout.addWidget(self.send_with_enter, 4, 5, 1, 1)
-
-        self.sendfile_time_lable = QLabel(self.rom_frame)
-        self.sendfile_time_lable.setText('文件发送时长: 0ms' )
-        self.sendfile_time_lable.setVisible(False)
-        self.sendfile_time_lable.setGeometry(100, frame.height(), 50, 25)
-        frame2_bar.addPermanentWidget(self.sendfile_time_lable)
-
-        self.send_bar = QProgressBar(self.rom_frame)
-        self.send_bar.setGeometry(50, frame.height(), 50, 20)
-        self.send_bar.setVisible(False)
-        frame2_bar.addPermanentWidget(self.send_bar)
-
-        self.sr_lable = QLabel(self.rom_frame)
-        self.sr_lable.setText('S:       R:      ')
-        self.sr_lable.setGeometry(100, frame.height(), 50, 25)
-        frame2_bar.addPermanentWidget(self.sr_lable)
-
-        self.label_4.setText("停止位")
-        self.label_5.setText("校验位")
-        self.ser_refresh.setText("刷新串口")
-        self.ser_sendtimer.setText("定时发送")
-        self.ser_hex_display.setText("Hex显示")
-        self.label_7.setText("字符串输入框")
-        self.label_2.setText("波特率")
-        self.label_6.setText("ms/次")
-        self.ser_clearbtn.setText("清除窗口")
-        self.label.setText("串口号")
-        self.set_openbtn.setText("打开串口")
-        self.ser_sendbtn.setText("发送")
-        self.ser_sendhex.setText("Hex发送")
-        self.label_3.setText("数据位")
-        self.ser_send_filebtn.setText("读写文件")
-        self.ser_rw_checkbox.setText("选中读写文件")
-        self.ser_file_select_btn.setText("...")
-        self.send_with_enter.setText("加回车换行")
-
-        self.ser_bdrate.addItems(baudrates)
-        self.ser_bdrate.setCurrentIndex(12)
-        self.ser_databit.addItems(databits)
-        self.ser_databit.setCurrentIndex(3)
-        self.ser_stopbit.addItems(stopbits)
-        self.ser_checkbit.addItems(checkbits)
-        self.ser_rw_combo.addItems(sr_select)
-
-        # self.ser_thread = ser_recvthread(self.ser_recv)
-        # self.ser_thread_working = False
-
-        self.ser_mutex = threading.Lock()
-        self.sendtmr = QTimer(self.custom_frame)
-        self.sendtmr.timeout.connect(self.ser_senddata)
-
-        self.recvtmr = QTimer(self.custom_frame)
-        self.recvtmr.timeout.connect(self.ser_recv)
-
-        self.sendfile_tmr = QTimer(self.custom_frame)
-        self.sendfile_tmr.timeout.connect(self.ser_send_progerss)
-        self.is_sendfile = False
-
-        self.ser_working = False
-        self.ser = serial.Serial()
-        # self.ser.close()
-        self.ser_recv_datalen = 0
-        self.ser_send_datalen = 0
-        self.read_data_file = False
-
-        frame2_bar_frame = QFrame(main_frame2)
-        frame2_bar_frame.setGeometry(0, frame.height(), self.width(), 25)
-
-        return main_frame2
-
-    def click_window1(self):
-        if self.stacked_layout.currentIndex() != 0:
-            self.stacked_layout.setCurrentIndex(0)
-            #self.frame1_bar.showMessage("欢迎使用")
-
-    def click_window2(self):
-        if self.stacked_layout.currentIndex() != 1:
-            self.stacked_layout.setCurrentIndex(1)
-            self.serial_update()
-            #self.frame2_bar.showMessage("欢迎进入frame2")
-            #QDesktopServices.openUrl(QUrl("https://www.csdn.net/"))  # 点击window2按钮后，执行这个槽函数的时候，会在浏览器自动打开这个网址
-
-    def click_feedback(self, event):
-        QMessageBox.about(self, "反馈", "抱歉无法反馈")
-
-    def click_about(self, event):
-        #QMessageBox.about(self, "关于", "抱歉，没有文档")
-        self.di = QDialog()
-        timedisplay = Ui_Dialog()
-        timedisplay.setupUi(self.di)
-        now = time.localtime()
-        timedisplay.label.setText('%02d:%02d:%02d' %(now.tm_hour, now.tm_min, now.tm_sec))
-        timedisplay.pushButton.clicked.connect(self.di.close)
-        self.di.setWindowModality(Qt.ApplicationModal) #锁定子窗口，关闭子窗口后才可以操作父窗口
-
-        self.di.show()
-
-        abot_timer = QTimer(self.di)
-        abot_timer.timeout.connect(lambda :timedisplay.label.setText('%02d:%02d:%02d' %(time.localtime().tm_hour, time.localtime().tm_min, time.localtime().tm_sec)))
-        abot_timer.start(1000)
 
     def add_file_select(self):
         """
@@ -815,6 +650,203 @@ class Little_tool(QWidget):
         self.ed.delete(param)
         self.ed.insert(self.lineedit_list[param].text(), str, param)
         self.ed.dbDump()
+
+    def window2_UI(self, frame):
+        """
+            串口程序UI布局
+        """
+        # 第二个布局
+        main_frame2 = QMainWindow()
+        frame2_bar = QStatusBar()
+        frame2_bar.setObjectName("frame2_bar")
+        main_frame2.setStatusBar(frame2_bar)
+        frame2_bar.showMessage("欢迎进入串口小工具")
+
+        self.custom_frame = QFrame(main_frame2)
+        self.custom_frame.setGeometry(0, 0, self.width(), frame.height() - 25)
+        self.custom_frame.setFrameShape(QFrame.Panel)
+        self.custom_frame.setFrameShadow(QFrame.Raised)
+
+        self.gridLayout = QGridLayout(self.custom_frame)
+        self.gridLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout.setObjectName("gridLayout")
+        self.ser_databit = QtWidgets.QComboBox(self.custom_frame)
+        self.ser_databit.setObjectName("ser_databit")
+        self.gridLayout.addWidget(self.ser_databit, 5, 1, 1, 1)
+        self.label_4 = QtWidgets.QLabel(self.custom_frame)
+        self.label_4.setObjectName("label_4")
+        self.gridLayout.addWidget(self.label_4, 6, 0, 1, 1)
+        self.label_5 = QtWidgets.QLabel(self.custom_frame)
+        self.label_5.setObjectName("label_5")
+        self.gridLayout.addWidget(self.label_5, 7, 0, 1, 1)
+        self.ser_display_lineedit = QtWidgets.QLineEdit(self.custom_frame)
+        self.ser_display_lineedit.setObjectName("ser_display")
+        self.gridLayout.addWidget(self.ser_display_lineedit, 6, 2, 1, 4)
+        self.ser_refresh = QtWidgets.QPushButton(self.custom_frame)
+        self.ser_refresh.setObjectName("ser_refresh")
+        self.ser_refresh.clicked.connect(self.serial_update)
+        self.gridLayout.addWidget(self.ser_refresh, 1, 3, 1, 1)
+        self.ser_stopbit = QtWidgets.QComboBox(self.custom_frame)
+        self.ser_stopbit.setObjectName("ser_stopbit")
+        self.gridLayout.addWidget(self.ser_stopbit, 6, 1, 1, 1)
+        self.ser_sendtimer = QtWidgets.QCheckBox(self.custom_frame)
+        self.ser_sendtimer.setObjectName("ser_sendtimer")
+        self.ser_sendtimer.stateChanged.connect(self.sendtmr_switch)
+        self.gridLayout.addWidget(self.ser_sendtimer, 4, 2, 1, 1)
+        self.ser_checkbit = QtWidgets.QComboBox(self.custom_frame)
+        self.ser_checkbit.setObjectName("ser_checkbit")
+        self.gridLayout.addWidget(self.ser_checkbit, 7, 1, 1, 1)
+        self.ser_hex_display = QtWidgets.QCheckBox(self.custom_frame)
+        self.ser_hex_display.setObjectName("ser_hex_display")
+        self.ser_hex_display.stateChanged.connect(self.rdata2hex)
+        self.gridLayout.addWidget(self.ser_hex_display, 1, 4, 1, 2)
+        self.label_7 = QtWidgets.QLabel(self.custom_frame)
+        self.label_7.setObjectName("label_7")
+        self.gridLayout.addWidget(self.label_7, 5, 2, 1, 4)
+        self.ser_num = QtWidgets.QComboBox(self.custom_frame)
+        self.ser_num.setObjectName("ser_num")
+        self.gridLayout.addWidget(self.ser_num, 1, 1, 1, 1)
+        self.label_2 = QtWidgets.QLabel(self.custom_frame)
+        self.label_2.setObjectName("label_2")
+        self.gridLayout.addWidget(self.label_2, 4, 0, 1, 1)
+        self.label_6 = QtWidgets.QLabel(self.custom_frame)
+        self.label_6.setObjectName("label_6")
+        self.gridLayout.addWidget(self.label_6, 4, 4, 1, 1)
+        self.ser_clearbtn = QtWidgets.QPushButton(self.custom_frame)
+        self.ser_clearbtn.setObjectName("ser_clearbtn")
+        self.ser_clearbtn.clicked.connect(self.ser_textedit_clear)
+        self.gridLayout.addWidget(self.ser_clearbtn, 1, 6, 1, 1)
+        self.textEdit = QtWidgets.QTextEdit(self.custom_frame)
+        self.textEdit.setObjectName("textEdit")
+        self.textEdit.setFocusPolicy(Qt.NoFocus)
+        self.gridLayout.addWidget(self.textEdit, 0, 0, 1, 7)
+        self.label = QtWidgets.QLabel(self.custom_frame)
+        self.label.setObjectName("label")
+        self.gridLayout.addWidget(self.label, 1, 0, 1, 1)
+        self.ser_file_select = QtWidgets.QLineEdit(self.custom_frame)
+        self.ser_file_select.setObjectName("ser_file_select")
+        self.gridLayout.addWidget(self.ser_file_select, 11, 0, 1, 6)
+        self.set_openbtn = QtWidgets.QPushButton(self.custom_frame)
+        self.set_openbtn.setObjectName("set_openbtn")
+        self.set_openbtn.clicked.connect(self.oc_serial)
+        self.gridLayout.addWidget(self.set_openbtn, 1, 2, 1, 1)
+        self.ser_sendbtn = QtWidgets.QPushButton(self.custom_frame)
+        self.ser_sendbtn.setObjectName("ser_sendbtn")
+        self.ser_sendbtn.setEnabled(False)
+        self.ser_sendbtn.clicked.connect(self.ser_senddata)
+        self.gridLayout.addWidget(self.ser_sendbtn, 6, 6, 1, 1)
+        self.ser_sendtmr_time = QtWidgets.QLineEdit(self.custom_frame)
+        self.ser_sendtmr_time.setEnabled(True)
+        self.ser_sendtmr_time.setText('100')
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.ser_sendtmr_time.sizePolicy().hasHeightForWidth())
+        self.ser_sendtmr_time.setSizePolicy(sizePolicy)
+        self.ser_sendtmr_time.setObjectName("ser_sendtmr_time")
+        self.ser_sendtmr_time.textChanged.connect(self.sendtmr_switch)
+        self.gridLayout.addWidget(self.ser_sendtmr_time, 4, 3, 1, 1)
+        self.ser_bdrate = QtWidgets.QComboBox(self.custom_frame)
+        self.ser_bdrate.setObjectName("ser_bdrate")
+        self.gridLayout.addWidget(self.ser_bdrate, 4, 1, 1, 1)
+        self.ser_sendhex = QtWidgets.QCheckBox(self.custom_frame)
+        self.ser_sendhex.setObjectName("ser_sendhex")
+        self.ser_sendhex.stateChanged.connect(self.sdata2hex)
+        self.gridLayout.addWidget(self.ser_sendhex, 7, 2, 1, 1)
+        self.label_3 = QtWidgets.QLabel(self.custom_frame)
+        self.label_3.setObjectName("label_3")
+        self.gridLayout.addWidget(self.label_3, 5, 0, 1, 1)
+        self.ser_send_filebtn = QtWidgets.QPushButton(self.custom_frame)
+        self.ser_send_filebtn.setObjectName("ser_send_filebtn")
+        self.ser_send_filebtn.setEnabled(False)
+        self.ser_send_filebtn.clicked.connect(self.ser_rw_sendfile_btn_clicked)
+        self.gridLayout.addWidget(self.ser_send_filebtn, 10, 6, 1, 1)
+        self.ser_rw_combo = QtWidgets.QComboBox(self.custom_frame)
+        self.ser_rw_combo.setObjectName("ser_rw_combo")
+        self.ser_rw_combo.setEnabled(False)
+        self.ser_rw_combo.activated[str].connect(self.ser_rw_combo_changed)
+        self.gridLayout.addWidget(self.ser_rw_combo, 10, 5, 1, 1)
+        self.ser_rw_checkbox = QtWidgets.QCheckBox(self.custom_frame)
+        self.ser_rw_checkbox.setObjectName("ser_rw_checkbox")
+        self.ser_rw_checkbox.stateChanged.connect(self.send_file_select)
+        self.gridLayout.addWidget(self.ser_rw_checkbox, 10, 0, 1, 1)
+        self.ser_file_select_btn = QtWidgets.QPushButton(self.custom_frame)
+        self.ser_file_select_btn.setObjectName("ser_file_select_btn")
+        self.ser_file_select_btn.clicked.connect(self.ser_rw_selectbtn_clicked)
+        self.gridLayout.addWidget(self.ser_file_select_btn, 11, 6, 1, 1)
+        self.send_with_enter = QtWidgets.QCheckBox(self.custom_frame)
+        self.send_with_enter.setObjectName("send_with_enter")
+        self.gridLayout.addWidget(self.send_with_enter, 4, 5, 1, 1)
+
+        self.sendfile_time_lable = QLabel(self.rom_frame)
+        self.sendfile_time_lable.setText('文件发送时长: 0ms' )
+        self.sendfile_time_lable.setVisible(False)
+        self.sendfile_time_lable.setGeometry(100, frame.height(), 50, 25)
+        frame2_bar.addPermanentWidget(self.sendfile_time_lable)
+
+        self.send_bar = QProgressBar(self.rom_frame)
+        self.send_bar.setGeometry(50, frame.height(), 50, 20)
+        self.send_bar.setVisible(False)
+        frame2_bar.addPermanentWidget(self.send_bar)
+
+        self.sr_lable = QLabel(self.rom_frame)
+        self.sr_lable.setText('S:       R:      ')
+        self.sr_lable.setGeometry(100, frame.height(), 50, 25)
+        frame2_bar.addPermanentWidget(self.sr_lable)
+
+        self.label_4.setText("停止位")
+        self.label_5.setText("校验位")
+        self.ser_refresh.setText("刷新串口")
+        self.ser_sendtimer.setText("定时发送")
+        self.ser_hex_display.setText("Hex显示")
+        self.label_7.setText("字符串输入框")
+        self.label_2.setText("波特率")
+        self.label_6.setText("ms/次")
+        self.ser_clearbtn.setText("清除窗口")
+        self.label.setText("串口号")
+        self.set_openbtn.setText("打开串口")
+        self.ser_sendbtn.setText("发送")
+        self.ser_sendhex.setText("Hex发送")
+        self.label_3.setText("数据位")
+        self.ser_send_filebtn.setText("读写文件")
+        self.ser_rw_checkbox.setText("选中读写文件")
+        self.ser_file_select_btn.setText("...")
+        self.send_with_enter.setText("加回车换行")
+
+        self.ser_bdrate.addItems(baudrates)
+        self.ser_bdrate.setCurrentIndex(12)
+        self.ser_databit.addItems(databits)
+        self.ser_databit.setCurrentIndex(3)
+        self.ser_stopbit.addItems(stopbits)
+        self.ser_checkbit.addItems(checkbits)
+        self.ser_rw_combo.addItems(sr_select)
+
+        # self.ser_thread = ser_recvthread(self.ser_recv)
+        # self.ser_thread_working = False
+
+        self.ser_mutex = threading.Lock()
+        self.sendtmr = QTimer(self.custom_frame)
+        self.sendtmr.timeout.connect(self.ser_senddata)
+
+        self.recvtmr = QTimer(self.custom_frame)
+        self.recvtmr.timeout.connect(self.ser_recv)
+
+        self.sendfile_tmr = QTimer(self.custom_frame)
+        self.sendfile_tmr.timeout.connect(self.ser_send_progerss)
+        self.is_sendfile = False
+
+        self.ser_working = False
+        self.ser = serial.Serial()
+        # self.ser.close()
+        self.ser_recv_datalen = 0
+        self.ser_send_datalen = 0
+        self.read_data_file = False
+
+        frame2_bar_frame = QFrame(main_frame2)
+        frame2_bar_frame.setGeometry(0, frame.height(), self.width(), 25)
+
+        return main_frame2
 
     def oc_serial(self):
         """
@@ -1168,10 +1200,242 @@ class Little_tool(QWidget):
         # print(self.file_send_len, self.send_file_size)
 
 
-    # def keyPressEvent(self, a0: QtGui.QKeyEvent):
-    #     self.textEdit.keyPressEvent(a0)
-    #     if a0.type() == a0.KeyPress:
-    #         print('key press')
+    def window3_UI(self, frame):
+        """
+            串口程序UI布局
+        """
+        # 第二个布局
+        main_frame3 = QMainWindow()
+        frame3_bar = QStatusBar()
+        frame3_bar.setObjectName("frame3_bar")
+        main_frame3.setStatusBar(frame3_bar)
+        frame3_bar.showMessage("欢迎进入图片转换")
+
+        self.picbin_frame = QFrame(main_frame3)
+        self.picbin_frame.setGeometry(0, 0, self.width(), frame.height() - 25)
+        self.picbin_frame.setFrameShape(QFrame.Panel)
+        self.picbin_frame.setFrameShadow(QFrame.Raised)
+
+        self.gridLayout = QtWidgets.QGridLayout(self.picbin_frame)
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout.setObjectName("gridLayout")
+        self.tableWidget_bin_file = QtWidgets.QTableWidget(self.picbin_frame)
+        self.tableWidget_bin_file.setObjectName("tableWidget_bin_file")
+        self.tableWidget_bin_file.setColumnCount(0)
+        self.tableWidget_bin_file.setRowCount(0)
+        self.gridLayout.addWidget(self.tableWidget_bin_file, 3, 0, 1, 8)
+        self.bin_dir_btn = QtWidgets.QPushButton(self.picbin_frame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.bin_dir_btn.sizePolicy().hasHeightForWidth())
+        self.bin_dir_btn.setSizePolicy(sizePolicy)
+        self.bin_dir_btn.setObjectName("bin_dir_btn")
+        self.gridLayout.addWidget(self.bin_dir_btn, 2, 7, 1, 1)
+        self.bin_dir_btn.clicked.connect(self.bin_btn_clicked)
+        self.main3_start_btn = QtWidgets.QPushButton(self.picbin_frame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.main3_start_btn.sizePolicy().hasHeightForWidth())
+        self.main3_start_btn.setSizePolicy(sizePolicy)
+        self.main3_start_btn.setObjectName("start_btn")
+        self.gridLayout.addWidget(self.main3_start_btn, 6, 7, 1, 1)
+        self.main3_start_btn.clicked.connect(self.start_btn_clicked)
+        self.pic_dir_btn = QtWidgets.QPushButton(self.picbin_frame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.pic_dir_btn.sizePolicy().hasHeightForWidth())
+        self.pic_dir_btn.setSizePolicy(sizePolicy)
+        self.pic_dir_btn.setObjectName("pic_dir_btn")
+        self.gridLayout.addWidget(self.pic_dir_btn, 0, 7, 1, 1)
+        self.pic_dir_btn.clicked.connect(self.pic_btn_cliked)
+        self.tableWidget_pic_file = QtWidgets.QTableWidget(self.picbin_frame)
+        self.tableWidget_pic_file.setObjectName("tableWidget_pic_file")
+        self.tableWidget_pic_file.setColumnCount(0)
+        self.tableWidget_pic_file.setRowCount(0)
+        self.gridLayout.addWidget(self.tableWidget_pic_file, 1, 0, 1, 8)
+        self.checkBox_flash = QtWidgets.QCheckBox(self.picbin_frame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.checkBox_flash.sizePolicy().hasHeightForWidth())
+        self.checkBox_flash.setSizePolicy(sizePolicy)
+        self.checkBox_flash.setObjectName("checkBox_flash")
+        self.gridLayout.addWidget(self.checkBox_flash, 6, 0, 1, 1)
+        self.checkBox_flash.stateChanged.connect(self.flash_ex_checked)
+        self.checkBox_alpha = QtWidgets.QCheckBox(self.picbin_frame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.checkBox_alpha.sizePolicy().hasHeightForWidth())
+        self.checkBox_alpha.setSizePolicy(sizePolicy)
+        self.checkBox_alpha.setObjectName("checkBox_alpha")
+        self.gridLayout.addWidget(self.checkBox_alpha, 6, 1, 1, 1)
+        self.checkBox_alpha.stateChanged.connect(self.alpha_checked)
+        self.refresh_btn = QtWidgets.QPushButton(self.picbin_frame)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.refresh_btn.sizePolicy().hasHeightForWidth())
+        self.refresh_btn.setSizePolicy(sizePolicy)
+        self.refresh_btn.setObjectName("refresh_btn")
+        self.gridLayout.addWidget(self.refresh_btn, 6, 2, 1, 1)
+        self.refresh_btn.clicked.connect(self.refresh_btn_clicked)
+        self.lineEdit_bin_dir = QtWidgets.QLineEdit(self.picbin_frame)
+        self.lineEdit_bin_dir.setObjectName("lineEdit_bin_dir")
+        self.gridLayout.addWidget(self.lineEdit_bin_dir, 2, 0, 1, 7)
+        self.lineEdit_pic_dir = QtWidgets.QLineEdit(self.picbin_frame)
+        self.lineEdit_pic_dir.setObjectName("lineEdit_pic_dir")
+        self.gridLayout.addWidget(self.lineEdit_pic_dir, 0, 0, 1, 7)
+
+        self.bin_dir_btn.setText("bin文件夹")
+        self.main3_start_btn.setText("开始")
+        self.pic_dir_btn.setText("文件夹...")
+        self.checkBox_flash.setText("外部flash")
+        self.checkBox_alpha.setText("透明度")
+        self.refresh_btn.setText("刷新")
+
+        frame3_bar_frame = QFrame(main_frame3)
+        frame3_bar_frame.setGeometry(0, frame.height(), self.width(), 25)
+
+        return main_frame3
+
+    def scan_data(self, dir):
+        for root, dirs, files in os.walk(dir):
+            # return root#当前目录路径
+            # return dirs#当前路径下所有子目录
+            # return files  # 当前路径下所有非目录子文件
+            for file in files:
+                if os.path.splitext(file)[-1] == '.bmp' or os.path.splitext(file)[-1] == '.png':
+                    file_path = os.path.join(root, file).replace('\\', '/')
+                    self.filepath_list.append(file_path)
+                    self.filename_list.append(file)
+        # print(self.filepath_list)
+        # print(self.filename_list)
+
+    def scan_bin(self, dir):
+        for root, dirs, files in os.walk(dir):
+            # return root#当前目录路径
+            # return dirs#当前路径下所有子目录
+            # return files  # 当前路径下所有非目录子文件
+            for file in files:
+                if os.path.splitext(file)[-1] == '.bin':
+                    file_path = os.path.join(root, file).replace('\\', '/')
+                    self.filepath_bin_list.append(file_path)
+                    self.filename_bin_list.append(file)
+
+    def pic_btn_cliked(self):
+        pic_dir_path = QFileDialog.getExistingDirectory(self)
+
+        if pic_dir_path:
+            self.lineEdit_pic_dir.setText(pic_dir_path)
+            self.refresh_btn_clicked()
+
+    def bin_btn_clicked(self):
+        bin_dir_path = QFileDialog.getExistingDirectory(self)
+        if bin_dir_path:
+            self.lineEdit_bin_dir.setText(bin_dir_path)
+            self.refresh_btn_clicked()
+
+    def refresh_btn_clicked(self):
+        dir  = self.lineEdit_pic_dir.text()
+        self.filename_list.clear()
+        self.filepath_list.clear()
+        self.scan_data(dir)
+        self.tableWidget_pic_file.clear()
+        self.tableWidget_pic_file.setRowCount(len(self.filename_list))
+        self.tableWidget_pic_file.setColumnCount(3)
+        self.tableWidget_pic_file.horizontalHeader().setStretchLastSection(True)
+        self.tableWidget_pic_file.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.tableWidget_pic_file.setHorizontalHeaderLabels(['透明度', '内外flash', '文件'])
+        for i in range(len(self.filepath_list)):
+            if self.filepath_list[i].split('.')[1].lower() == 'alpha'.lower():
+                self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('yes'))
+            elif self.filepath_list[i].split('.')[1].lower() == 'point'.lower():
+                self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('point'))
+            elif self.filepath_list[i].split('.')[1].lower() == 'pAA'.lower():
+                self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('pAA'))
+            else:
+                self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('no'))
+
+            if self.filepath_list[i].split('.')[1].lower() == 'mcu'.lower():
+                self.tableWidget_pic_file.setItem(i, 1, QTableWidgetItem('force_mcu'))
+            else:
+                self.tableWidget_pic_file.setItem(i, 1, QTableWidgetItem('mcu'))
+            self.tableWidget_pic_file.setItem(i, 2, QTableWidgetItem(self.filepath_list[i]))
+        self.checkBox_flash.setChecked(False)
+        self.checkBox_alpha.setChecked(False)
+
+        dir = self.lineEdit_bin_dir.text()
+        self.filename_bin_list.clear()
+        self.filepath_bin_list.clear()
+        self.scan_bin(dir)
+        self.tableWidget_bin_file.clear()
+        self.tableWidget_bin_file.setRowCount(len(self.filepath_bin_list))
+        self.tableWidget_bin_file.setColumnCount(1)
+        self.tableWidget_bin_file.horizontalHeader().setStretchLastSection(True)
+        self.tableWidget_bin_file.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.tableWidget_bin_file.setHorizontalHeaderLabels(['文件'])
+        for i in range(len(self.filepath_bin_list)):
+            self.tableWidget_bin_file.setItem(i, 0, QTableWidgetItem(self.filepath_bin_list[i]))
+
+
+    def flash_ex_checked(self):
+        for i in range(self.tableWidget_pic_file.rowCount()):
+            if self.tableWidget_pic_file.item(i, 1).text().lower() == 'force_mcu'.lower():
+                continue
+
+            if self.checkBox_flash.isChecked():
+                self.tableWidget_pic_file.item(i, 1).setText('spi')
+            else:
+                self.tableWidget_pic_file.item(i, 1).setText('mcu')
+
+    def alpha_checked(self):
+        for i in range(self.tableWidget_pic_file.rowCount()):
+            if self.tableWidget_pic_file.item(i, 1).text().lower() == 'pAA'.lower():
+                continue
+
+            if self.checkBox_alpha.isChecked():
+                self.tableWidget_pic_file.item(i, 0).setText('yes')
+            else:
+                self.tableWidget_pic_file.item(i, 0).setText('no')
+
+    def start_btn_clicked(self):
+        checkFilePathList = []
+        checkFileNameList = []
+        checkFilePathList_bin = []
+        checkFileNameList_bin = []
+        for i in range(len(self.filepath_list)):
+            checkFilePathList.append(self.filepath_list[i])
+            checkFileNameList.append(self.filename_list[i])
+        for i in range(len(self.filepath_bin_list)):
+            checkFilePathList_bin.append(self.filepath_bin_list[i])
+            checkFileNameList_bin.append(self.filename_bin_list[i])
+
+        for i in range(len(checkFilePathList)):
+            # print(checkFilePathList[i])
+            img = Image.open(checkFilePathList[i])
+            img_pix = img.load()
+            # print("pic width %d, height %d, mode %s" %(img.size[0], img.size[1], img.mode))
+            color = 0
+            alpha = 0
+            if self.tableWidget_pic_file.item(i, 1).text() == 'spi':
+                x_align_size = (img.size[0]+3)/4*4
+                for y in range(img.size[1]):
+                    for x in range(img.size[0]):
+                        if img.mode == 'RGBA':
+                            if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
+                                alpha = img_pix[x, y][3]
+                                color = ((img_pix[x, y][0]>>3) << 11)| \
+                                        ((img_pix[x, y][1] >> 2) << 5) | \
+                                        ((img_pix[x, y][2]>>3) << 0)
+                            else:
+                                alpha = img_pix[x, y][3]
+                                color = (((img_pix[x, y][0]*alpha/0xFF) >> 3) << 11) | \
+                                        (((img_pix[x, y][1]*alpha/0xFF) >> 2) << 5) | \
+                                        (((img_pix[x, y][2]*alpha/0xFF) >> 3) << 0)
 
 # 继承threading.Thread
 '''
