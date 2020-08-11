@@ -1407,6 +1407,8 @@ class Little_tool(QWidget):
         checkFileNameList = []
         checkFilePathList_bin = []
         checkFileNameList_bin = []
+        color_buf = []
+        picture_data = []
         for i in range(len(self.filepath_list)):
             checkFilePathList.append(self.filepath_list[i])
             checkFileNameList.append(self.filename_list[i])
@@ -1414,6 +1416,7 @@ class Little_tool(QWidget):
             checkFilePathList_bin.append(self.filepath_bin_list[i])
             checkFileNameList_bin.append(self.filename_bin_list[i])
 
+        color_buf.clear()
         for i in range(len(checkFilePathList)):
             # print(checkFilePathList[i])
             img = Image.open(checkFilePathList[i])
@@ -1433,9 +1436,63 @@ class Little_tool(QWidget):
                                         ((img_pix[x, y][2]>>3) << 0)
                             else:
                                 alpha = img_pix[x, y][3]
-                                color = (((img_pix[x, y][0]*alpha/0xFF) >> 3) << 11) | \
-                                        (((img_pix[x, y][1]*alpha/0xFF) >> 2) << 5) | \
-                                        (((img_pix[x, y][2]*alpha/0xFF) >> 3) << 0)
+                                color = (((img_pix[x, y][0]*alpha//0xFF) >> 3) << 11) | \
+                                        (((img_pix[x, y][1]*alpha//0xFF) >> 2) << 5) | \
+                                        (((img_pix[x, y][2]*alpha//0xFF) >> 3) << 0)
+                        elif img.mode == 'RGB':
+                            color = ((img_pix[x, y][0] >> 3) << 11) | \
+                                    ((img_pix[x, y][1] >> 2) << 5) | \
+                                    ((img_pix[x, y][2] >> 3) << 0)
+                        elif img.mode == 'L' or img.mode == 'P':
+                            color = ((img_pix[x, y] >> 0) << 0)
+
+                        if img.mode == 'RGBA':
+                            if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
+                                color_buf.append(alpha)
+                                color_buf.append((color>>8)&0xFF)
+                                color_buf.append((color>>0)&0xFF)
+                            elif self.tableWidget_pic_file.item(i, 0).text() == 'point':
+                                if color <= 0:
+                                    continue
+                                color_buf.append(x)
+                                color_buf.append(y)
+                                color_buf.append((color>>8)&0xFF)
+                                color_buf.append((color>>0)&0xFF)
+                            elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
+                                if color <= 0:
+                                    continue
+                                color_buf.append(x)
+                                color_buf.append(y)
+                                color_buf.append((color>>8)&0xFF)
+                                color_buf.append((color>>0)&0xFF)
+                            else:
+                                color_buf.append((color >> 8) & 0xFF)
+                                color_buf.append((color >> 0) & 0xFF)
+                        elif img.mode == 'RGB':
+                            color_buf.append((color >> 8) & 0xFF)
+                            color_buf.append((color >> 0) & 0xFF)
+                        elif img.mode == 'L' or img.mode == 'P':
+                            color_buf.append((color >> 0) & 0xFF)
+
+                        picture_data += color_buf
+                        color_buf.clear()
+
+                if img.mode == 'P':
+                    img_pal = list(img.convert("RGB").getdata())
+                    color_buf.append((len(img_pal)>>0)&0xFF)
+                    color_buf.append((len(img_pal)>>1)&0xFF)
+
+                    for pal_index in range(len(img_pal)):
+                        table = (img_pal[pal_index][0]<<0)|(img_pal[pal_index][1]<<5)|(img_pal[pal_index][2]<<11)
+                        color_buf.append((table>>8)&0xFF)
+                        color_buf.append((table>>0)&0xFF)
+                        picture_data += color_buf
+                        color_buf.clear()
+
+        with open('picture.bin', 'wb') as f:
+            # print(picture_data)
+            for data in picture_data:
+                f.write(data.to_bytes(1, byteorder='little'))
 
 # 继承threading.Thread
 '''
