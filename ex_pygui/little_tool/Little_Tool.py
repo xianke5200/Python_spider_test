@@ -542,6 +542,7 @@ class Little_tool(QWidget):
             read_data = self.read_excel_file(self.lineedit_list[index].text(), 0, None, None, None)
             if index == 0:
                 return
+            self.write_sqlite(self.combo_list[index-1].currentText(), index)
             self.combo_list[index-1].addItems(read_data[1:])
             self.combo_list[index-1].activated[str].connect(lambda str, param = index : self.write_sqlite(str, param))
 
@@ -629,26 +630,23 @@ class Little_tool(QWidget):
                 mySheet_dest_col = len(mySheet_first_row_data)
             print("目标列序号：%d" % (mySheet_dest_col))
 
-            if mySheet_dest_col < len(dest_data[0]):
-                for dest_all_data_row in range(len(dest_data)):
-                    for j in range(len(dest_data[0])):
-                        if j == mySheet_dest_col and dest_all_data_row < len(dest_all_data):
-                            print(dest_all_data_row, j, dest_col_data[dest_all_data_row])
-                            mySheet.write(dest_all_data_row, j, dest_col_data[dest_all_data_row])
-                        else:
-                            if(j < len(dest_data[0]) and mySheet_dest_col < len(dest_data[0])):
-                                print(dest_all_data_row, j, dest_data[dest_all_data_row][j])
-                                mySheet.write(dest_all_data_row, j, dest_data[dest_all_data_row][j])
-            else:
-                for dest_all_data_row in range(len(dest_all_data)):
-                    for j in range(len(dest_col_data)):
-                        if j == mySheet_dest_col:
-                            print(dest_all_data_row, j, dest_col_data[dest_all_data_row])
-                            mySheet.write(dest_all_data_row, j, dest_col_data[dest_all_data_row])
-                        else:
-                            if(j < len(dest_data[0]) and mySheet_dest_col < len(dest_data[0])):
-                                print(dest_all_data_row, j, dest_data[dest_all_data_row][j])
-                                mySheet.write(dest_all_data_row, j, dest_data[dest_all_data_row][j])
+            max_row = max(len(dest_data), len(dest_all_data))
+            max_col = max(len(dest_data[0]), len(dest_all_data[0]))
+
+            for dest_all_data_row in range(max_row):
+                for j in range(max_col):
+                    if j == mySheet_dest_col and dest_all_data_row < len(dest_all_data):
+                        # print('dest ',dest_all_data_row, j, dest_col_data[dest_all_data_row])
+                        mySheet.write(dest_all_data_row, j, dest_col_data[dest_all_data_row])
+
+        for source_row in range(len(dest_data)):
+            for source_dest in range(len(dest_data[0])):
+                    # print(source_row, source_dest, dest_data[source_row][source_dest])
+                    try:
+                        mySheet.write(source_row, source_dest, dest_data[source_row][source_dest])
+                    except Exception as e:
+                        print("over write pass: {}".format(e))
+
         now = time.localtime()
         QMessageBox.about(self, "结束", "文件已复制完成")
         workbook.save('SN_设备侧_固件标题语言'+'%s%s%s%s%s%s' %(now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec)+'.xls')
