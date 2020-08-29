@@ -24,8 +24,9 @@ class excel_db():
         self.db.insert("INSERT INTO %s VALUES(?, ?, ?)" % self.table,
                   [(filepath, language, index)])
 
-    def getAll(self,index):
-        pass
+    def getAll(self, index):
+        return self.db.query("SELECT * FROM %s" % self.table)
+
     getRC = lambda cur: cur.rowcount if hasattr(cur, 'rowcount') else -1
 
     def delete(self, index):

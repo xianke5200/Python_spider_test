@@ -4,20 +4,22 @@ img = Image.open("more.png")
 # img.show()
 
 print(img.size)#获取图片大小（width， height）
-print(img.mode)#获取图片模式{'1':1, 'L':8, 'P':8, 'RGB':24, 'RGBA':32,}
+print(img.mode)#获取图片模式{'1':1, 'L':8, 'P':8(带颜色表), 'RGB':24, 'RGBA':32,}
 print(img.info)
 sequ = img.getdata()
 sequ0 = list(sequ)
 print(sequ0)#获取图片像素值
 
-print(img.palette.palette)
-lut = img.resize((99, 99))
-lut.putdata(range(256))
-lut = lut.convert("RGB").getdata()
-print(list(lut))
-
-# lut now contains a sequence of (r, g, b) tuples
-
+if img.mode == 'P':
+    print(img.palette.palette)#打印颜色表
+    lut = img.resize((99, 99))
+    lut.putdata(range(256))
+    lut = lut.convert("RGB")#将图片转换为RGB图像
+    print(list(lut.getdata()))#打印图像RGB像素值
+    # pix = lut.load()
+    # print(pix[1, 0])
+    # lut.show()
+    # lut now contains a sequence of (r, g, b) tuples
 
 pix = img.load()
 print(pix[img.size[0]/2, img.size[1]/2])#某个点（x, y）的像素值
@@ -52,6 +54,7 @@ print(pix[img.size[0]/2, img.size[1]/2])#某个点（x, y）的像素值
 #                 f.write("%d, %d, %02x, %02x, %02x,\n" %(j, i, a, (((r&0x001f)*2**11)|((g&0x3f)*2**5)|(b&0x1f))//256, (((r&0x001f)*2**11)|((g&0x3f)*2**5)|(b&0x1f))%256))
         # if value[0] != 0:
         #     print("", value)
+        
 # height = shape[0]
 # width = shape[1]
 # dst = np.zeros((height,width,3))
