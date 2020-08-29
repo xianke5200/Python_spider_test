@@ -629,15 +629,26 @@ class Little_tool(QWidget):
                 mySheet_dest_col = len(mySheet_first_row_data)
             print("目标列序号：%d" % (mySheet_dest_col))
 
-            for dest_all_data_row in range(len(dest_all_data)):
-                for j in range(len(dest_all_data)):
-                    if j == mySheet_dest_col:
-                        print(dest_all_data_row, j, dest_col_data[dest_all_data_row])
-                        mySheet.write(dest_all_data_row, j, dest_col_data[dest_all_data_row])
-                    else:
-                        if(j < len(dest_data[0]) and mySheet_dest_col < len(dest_data[0])):
-                            print(dest_all_data_row, j, dest_data[dest_all_data_row][j])
-                            mySheet.write(dest_all_data_row, j, dest_data[dest_all_data_row][j])
+            if mySheet_dest_col < len(dest_data[0]):
+                for dest_all_data_row in range(len(dest_data)):
+                    for j in range(len(dest_data[0])):
+                        if j == mySheet_dest_col and dest_all_data_row < len(dest_all_data):
+                            print(dest_all_data_row, j, dest_col_data[dest_all_data_row])
+                            mySheet.write(dest_all_data_row, j, dest_col_data[dest_all_data_row])
+                        else:
+                            if(j < len(dest_data[0]) and mySheet_dest_col < len(dest_data[0])):
+                                print(dest_all_data_row, j, dest_data[dest_all_data_row][j])
+                                mySheet.write(dest_all_data_row, j, dest_data[dest_all_data_row][j])
+            else:
+                for dest_all_data_row in range(len(dest_all_data)):
+                    for j in range(len(dest_col_data)):
+                        if j == mySheet_dest_col:
+                            print(dest_all_data_row, j, dest_col_data[dest_all_data_row])
+                            mySheet.write(dest_all_data_row, j, dest_col_data[dest_all_data_row])
+                        else:
+                            if(j < len(dest_data[0]) and mySheet_dest_col < len(dest_data[0])):
+                                print(dest_all_data_row, j, dest_data[dest_all_data_row][j])
+                                mySheet.write(dest_all_data_row, j, dest_data[dest_all_data_row][j])
         now = time.localtime()
         QMessageBox.about(self, "结束", "文件已复制完成")
         workbook.save('SN_设备侧_固件标题语言'+'%s%s%s%s%s%s' %(now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec)+'.xls')
