@@ -1,85 +1,36 @@
 class Solution:
+    def match_recursion(self, s_i, p_j, s, p):
+        # print(s_i, p_j, self.s_len, self.p_len)
+        if p_j >= self.p_len and s_i >= self.s_len:
+            return True
+        if p_j >= self.p_len:
+            return False
+        if s_i >= self.s_len:
+            if (self.p_len-p_j) >= 2 and p[p_j+1] == '*':
+                return self.match_recursion(s_i, p_j+2, s, p)
+            return False
+
+        if p_j+2 <= self.p_len and p[p_j+1] == '*':
+            if p[p_j] != s[s_i]:
+                if p[p_j] != '.':
+                    return self.match_recursion(s_i, p_j+2, s, p)
+                return self.match_recursion(s_i, p_j + 2, s, p) or self.match_recursion(s_i + 1, p_j, s, p)
+            return self.match_recursion(s_i, p_j + 2, s, p) or self.match_recursion(s_i + 1, p_j, s, p)
+
+        if p[p_j] != s[s_i]:
+            if p[p_j] != '.':
+                return False
+
+        return self.match_recursion(s_i+1, p_j+1, s, p)
+
     def isMatch(self, s: str, p: str) -> bool:
-        s_len = len(s)
-        p_len = len(p)
-        print(p_len, s_len)
-
-        i = 0
-        j = 0
-        j_temp = 0
-
-        while p[i]:
-            if p[i] == '.':
-                if (i+1) < p_len and  p[i+1] == '*':
-                    return True
-                else:
-                    i += 1
-                    j += 1
-                    if i >= p_len and j >= s_len:
-                        print('true 2')
-                        return True
-                    elif i < p_len and j < s_len:
-                        pass
-                    elif i < p_len and j >= s_len:
-                         try:
-                            if p[i+1] == '*' and (i+2) == p_len:
-                                return True
-                         except:
-                            return False
-                         return False
-                    else:
-                        print('false 2')
-                        return False
-            elif p[i] == s[j]:
-                if (i+1) < p_len and p[i+1] == '*':
-                    j_temp += 1
-                    if (j+j_temp) < s_len and p[i] != s[j+j_temp]:
-                        j = j+j_temp
-                        j_temp = 0
-                        i += 2
-                    elif (j+j_temp) == s_len:
-                        print('true 3')
-                        return True
-                elif (i+1) >= p_len and (j+1) >= s_len:
-                    if p[i] == s[j]:
-                        print('true 4')
-                        return True
-                    else:
-                        print('false 3: ', i, j)
-                        return False
-                else:
-                    i += 1
-                    j += 1
-                    if i >= p_len and j >= s_len:
-                        print('true 5')
-                        return True
-                    elif i < p_len and j < s_len:
-                        pass
-                    elif i < p_len and j >= s_len:
-                        try:
-                            if p[i+1] == '*' and (i+2) == p_len:
-                                return True
-                        except:
-                            return False
-                        return False
-                    else:
-                        print('false 4')
-                        return False
-            else:
-                if (i+1) < p_len and p[i+1] == '*':
-                    i += 2
-                elif (i+1) >= p_len:
-                    print('error 5')
-                    return False
-
-                if i >= p_len:
-                    return False
-
-        return True
-
-
+        self.p_len = len(p)
+        self.s_len = len(s)
+        # print("s: \'%s\', p: \'%s\', " % (para[i], para_1[i]))
+        return self.match_recursion(0, 0, s, p)
 
 solut = Solution()
-para = "a"
-para_1 = "ab*"
-print(solut.isMatch(para, para_1))
+para = ["a", 'a', '', '', '', 'aaaaab', 'aaaab', 'aa', 'aa', 'aaa', 'aaab']
+para_1 = ["ab*", 'aab', '', '.', '.*', 'aa.*b', 'aa.*bbb', 'a', 'a*', 'a*a', 'aaa.*']
+for i in range(len(para)):
+    print("s: \'%s\', p: \'%s\', "%(para[i], para_1[i]) , solut.isMatch(para[i], para_1[i]))
