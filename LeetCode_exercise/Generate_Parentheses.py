@@ -29,13 +29,10 @@ class Solution:
     def generateParenthesis(self, n: int):
         def backtrack(s=[], left=n, right=n):
             if not right:
-                print('3', s)
                 res.append(''.join(s))
             if left:
-                print('1', s)
                 backtrack(s + ['('], left-1, right)
             if left < right:
-                print('2', s)
                 backtrack(s + [')'], left, right-1)
 
         res = []
