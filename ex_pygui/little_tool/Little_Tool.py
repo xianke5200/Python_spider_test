@@ -1642,7 +1642,7 @@ class Little_tool(QWidget):
                     for bin_data in data:
                         font_data.append(bin_data)
                     data = f_bin.readline()
-            fileLenList_bin.append('#define\t%s_OFFSET\t\t0x%08x\r\n' % (FileNameList_bin[i].split('.')[0].upper(), pic_offset))
+            fileLenList_bin.append('#define\t%s_OFFSET\t\t0x%08X\r\n' % (FileNameList_bin[i].split('.')[0].upper(), pic_offset))
             pic_offset = pic_offset + os.path.getsize(FilePathList_bin[i])
 
         if (len(FilePathList_bin)):
@@ -1663,12 +1663,12 @@ class Little_tool(QWidget):
         # crc_16 = 0
         crc_16 = self.calculate_crc16(picture_data, len(picture_data))
         buf = [0] * 16
-        buf[0] = ((crc_16 >> 0) & 0xff)
-        buf[1] = ((crc_16 >> 8) & 0xff)
-        buf[2] = ((len(picture_data) >> 0) & 0xff)
-        buf[3] = ((len(picture_data) >> 8) & 0xff)
-        buf[4] = ((len(picture_data) >> 16) & 0xff)
-        buf[5] = ((len(picture_data) >> 24) & 0xff)
+        buf[0] = ((crc_16 >> 0) & 0xFF)
+        buf[1] = ((crc_16 >> 8) & 0xFF)
+        buf[2] = ((len(picture_data) >> 0) & 0xFF)
+        buf[3] = ((len(picture_data) >> 8) & 0xFF)
+        buf[4] = ((len(picture_data) >> 16) & 0xFF)
+        buf[5] = ((len(picture_data) >> 24) & 0xFF)
 
         picture_data = buf + picture_data
 
@@ -1788,25 +1788,25 @@ class Little_tool(QWidget):
 
                     if img.mode == 'RGBA':
                         if bit_point == 3:
-                            pic_buf = "0x%02x, 0x%02x, 0x%02x, " % (alpha, (color >> 8) & 0xff, (color >> 0) & 0xff)
+                            pic_buf = "0x%02X, 0x%02X, 0x%02X, " % (alpha, (color >> 8) & 0xff, (color >> 0) & 0xff)
                             pos += 3
                         elif bit_point == 4:
                             if color <= 0:
                                 pic_buf = ""
                             else:
-                                pic_buf = "0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, " \
+                                pic_buf = "0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, " \
                                           % (x, y, alpha, (color >> 8) & 0xff, (color >> 0) & 0xff)
                                 pos += 5
                         else:
-                            pic_buf = "0x%02x, 0x%02x, " \
+                            pic_buf = "0x%02X, 0x%02X, " \
                                       % ((color >> 8) & 0xff, (color >> 0) & 0xff)
                             pos += 2
                     elif img.mode == 'RGB' or img.mode == 'LA':
-                        pic_buf = "0x%02x, 0x%02x, " \
+                        pic_buf = "0x%02X, 0x%02X, " \
                                   % ((color >> 8) & 0xff, (color >> 0) & 0xff)
                         pos += 2
                     elif img.mode == 'L' or img.mode == 'P':
-                        pic_buf = "0x%02x, " \
+                        pic_buf = "0x%02X, " \
                                   % ((color >> 0) & 0xff)
                         pos += 1
 
@@ -1817,7 +1817,7 @@ class Little_tool(QWidget):
                 imgpal_len = image_pal_len # len(img_pal) // 3
                 # print(img_pal)
                 # print(imgpal_len)
-                pic_buf = "\r\n\t0x%02x, 0x%02x,\r\n\t" % ((imgpal_len >> 0) & 0xff, (imgpal_len >> 8) & 0xff)
+                pic_buf = "\r\n\t0x%02X, 0x%02X,\r\n\t" % ((imgpal_len >> 0) & 0xff, (imgpal_len >> 8) & 0xff)
                 picture_data.append(pic_buf)
 
                 pos = 0
@@ -1831,7 +1831,7 @@ class Little_tool(QWidget):
                     g = img_pal[pal_index + 1] >> 2
                     b = img_pal[pal_index + 2] >> 3
                     table = (r << 0) | (g << 5) | (b << 11)
-                    pic_buf = "0x%02x, 0x%02x, " % ((table >> 8) & 0xff, (table >> 0) & 0xff)
+                    pic_buf = "0x%02X, 0x%02X, " % ((table >> 8) & 0xff, (table >> 0) & 0xff)
                     picture_data.append(pic_buf)
                     pos += 2
 
@@ -2035,25 +2035,25 @@ class Little_tool(QWidget):
 
                     if img.mode == 'RGBA':
                         if bit_point == 3:
-                            pic_buf = "0x%02x, 0x%02x, 0x%02x, " % (alpha, (color >> 8) & 0xff, (color >> 0) & 0xff)
+                            pic_buf = "0x%02X, 0x%02X, 0x%02X, " % (alpha, (color >> 8) & 0xff, (color >> 0) & 0xff)
                             pos += 3
                         elif bit_point == 4:
                             if color <= 0:
                                 pic_buf = ""
                             else:
-                                pic_buf = "0x%02x, 0x%02x, 0x02x, 0x%02x, 0x%02x, " \
+                                pic_buf = "0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, " \
                                           % (x, y, alpha, (color >> 8) & 0xff, (color >> 0) & 0xff)
                                 pos += 5
                         else:
-                            pic_buf = "0x%02x, 0x%02x, " \
+                            pic_buf = "0x%02X, 0x%02X, " \
                                       % ((color >> 8) & 0xff, (color >> 0) & 0xff)
                             pos += 2
                     elif img.mode == 'RGB' or img.mode == 'LA':
-                        pic_buf = "0x%02x, 0x%02x, " \
+                        pic_buf = "0x%02X, 0x%02X, " \
                                   % ((color >> 8) & 0xff, (color >> 0) & 0xff)
                         pos += 2
                     elif img.mode == 'L' or img.mode == 'P':
-                        pic_buf = "0x%02x, " \
+                        pic_buf = "0x%02X, " \
                                   % ((color >> 0) & 0xff)
                         pos += 1
 
@@ -2064,7 +2064,7 @@ class Little_tool(QWidget):
                 imgpal_len = image_pal_len # len(img_pal) // 3
                 # print(img_pal)
                 # print(imgpal_len)
-                pic_buf = "\r\n\t0x%02x, 0x%02x,\r\n\t" % ((imgpal_len >> 0) & 0xff, (imgpal_len >> 8) & 0xff)
+                pic_buf = "\r\n\t0x%02X, 0x%02X,\r\n\t" % ((imgpal_len >> 0) & 0xff, (imgpal_len >> 8) & 0xff)
                 picture_data.append(pic_buf)
 
                 pos = 0
@@ -2078,7 +2078,7 @@ class Little_tool(QWidget):
                     g = img_pal[pal_index + 1] >> 2
                     b = img_pal[pal_index + 2] >> 3
                     table = (r << 0) | (g << 5) | (b << 11)
-                    pic_buf = "0x%02x, 0x%02x, " % ((table >> 8) & 0xff, (table >> 0) & 0xff)
+                    pic_buf = "0x%02X, 0x%02X, " % ((table >> 8) & 0xff, (table >> 0) & 0xff)
                     picture_data.append(pic_buf)
                     pos += 2
 
@@ -2216,7 +2216,7 @@ class Little_tool(QWidget):
             picture_data.append(pic_buf)
 
             if (self.tableWidget_pic_file.item(i, 1).text() == 'spi'):
-                pic_buf = "\t.addr = (const unsigned char *)0x%08x,\r\n" %(pos)
+                pic_buf = "\t.addr = (const unsigned char *)0x%08X,\r\n" %(pos)
 
                 if img.mode == 'RGBA':
                     if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
@@ -2339,11 +2339,11 @@ class Little_tool(QWidget):
         pic_buf = "\r\n\r\n"
         picture_data.append(pic_buf)
 
-        pic_buf = "#define PIC_CRC16\t\t0x%04x\r\n" %(crc16&0xffff)
+        pic_buf = "#define PIC_CRC16\t\t0x%04X\r\n" %(crc16&0xffff)
         picture_data.append(pic_buf)
         pic_buf = "#define PIC_HEAD_SIZE\t16\r\n"
         picture_data.append(pic_buf)
-        pic_buf = "#define PIC_OFFSET\t\t0x%08x\r\n" %(pic_offset)
+        pic_buf = "#define PIC_OFFSET\t\t0x%08X\r\n" %(pic_offset)
         picture_data.append(pic_buf)
 
         pic_buf = "\r\n\r\n"
