@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QButtonGroup
     QWidget, QStatusBar, QBoxLayout, QLabel, QDesktopWidget, QMessageBox, QMenu, QAction, QFileDialog, QLineEdit, \
     QGridLayout, QComboBox, QDialog, QProgressBar
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QFont, QIcon, QTextCursor
+from PyQt5.QtGui import QFont, QIcon, QTextCursor, QImage, QPalette, QPixmap, qRgb, qRed, qAlpha, qBlue, qGreen
 from PyQt5.QtCore import Qt
 
 from PIL import Image
@@ -1511,6 +1511,8 @@ class Little_tool(QWidget):
 
         return crc16
 
+    pixel_byte = 2
+
     def pic_and_font_bin_file_create(self, FilePathList, FileNameList, FilePathList_bin, FileNameList_bin):
         # picture.bin and picture_font_merge.bin file create
         print("create picture_font_merge.bin file")
@@ -1520,11 +1522,31 @@ class Little_tool(QWidget):
         pic_offset = 0
         fileLenList_bin = []
         color_buf.clear()
+
         for i in range(len(FilePathList)):
+            image = QImage()
+            image.load(FilePathList[i])
+            image_pal_len = image.colorCount()
+            # print(image.width(), image.height(), image.byteCount(), image.colorCount(), image.depth())
+            # print(image.colorTable())
+            # rgb = image.colorTable()
+            # print(len(rgb))
+            # image_palatte = []
+            # for i in range(len(rgb)):
+            #     r = qRed(rgb[i])
+            #     g = qGreen(rgb[i])
+            #     b = qBlue(rgb[i])
+            #     alpha = qAlpha(rgb[i])
+            #
+            #     image_palatte += r, g, b
+            # print(image_palatte)
+
+
             # print(checkFilePathList[i])
             img = Image.open(FilePathList[i])
             img_pix = img.load()
             # print("pic width %d, height %d, mode %s" %(img.size[0], img.size[1], img.mode))
+            # print(img.width, img.height)
             color = 0
             alpha = 0
             if self.tableWidget_pic_file.item(i, 1).text() == 'spi':
@@ -1587,8 +1609,8 @@ class Little_tool(QWidget):
                         color_buf.clear()
 
                 if img.mode == 'P':
-                    img_pal = list(img.getpalette())
-                    imgpal_len = len(img_pal) // 3
+                    img_pal = img.getpalette()
+                    imgpal_len = image_pal_len # len(img_pal) // 3
                     # print(img_pal)
                     # print(imgpal_len)
                     color_buf.append((imgpal_len >> 0) & 0xFF)
@@ -1628,14 +1650,15 @@ class Little_tool(QWidget):
 
             if remind_size > 0:
                 temp = [0xff for _ in range(4096 - remind_size)]
-                font_data = font_data + temp
                 pic_offset = len(font_data) + 16 + 4096 - remind_size
+                font_data = font_data + temp
             else:
                 pic_offset = len(font_data) + 16
 
             picture_data = font_data + picture_data
         else:
             pic_offset = 16
+        # print(pic_offset)
 
         # crc_16 = 0
         crc_16 = self.calculate_crc16(picture_data, len(picture_data))
@@ -1679,6 +1702,10 @@ class Little_tool(QWidget):
             # if self.tableWidget_pic_file.item(i, 1).text() == 'spi':
             #     continue
 
+            image = QImage()
+            image.load(FilePathList[i])
+            image_pal_len = image.colorCount()
+
             # print(FilePathList[i])
             img = Image.open(FilePathList[i])
             img_pix = img.load()
@@ -1690,23 +1717,23 @@ class Little_tool(QWidget):
             last_pos = 0
             if img.mode == 'RGBA':
                 if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
-                    bit_point = 3
+                    bit_point = self.pixel_byte+1
                 elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
                     bit_point = 4
                 elif self.tableWidget_pic_file.item(i, 0).text() == 'point':
                     bit_point = 4
                 else:
-                    bit_point = 2
+                    bit_point = self.pixel_byte
             elif img.mode == 'RGB':
-                bit_point = 2
+                bit_point = self.pixel_byte
             elif img.mode == 'LA':
-                bit_point = 2
+                bit_point = self.pixel_byte
             elif img.mode == 'P' or img.mode == 'L':
                 bit_point = 1
 
             if bit_point == 1:
-                pic_buf = "const unsigned char pic_%s_data[%d*%d*%d+2+%d*2] = \r\n{\r\n\t" \
-                          % (FileNameList[i].split('.')[0], img.size[0], img.size[1], bit_point, len(list(img.getpalette()))//3)
+                pic_buf = "const unsigned char pic_%s_data[%d*%d*%d+2+%d*%d] = \r\n{\r\n\t" \
+                          % (FileNameList[i].split('.')[0], img.size[0], img.size[1], bit_point, image_pal_len, self.pixel_byte)
             elif (bit_point == 2) or (bit_point == 3):
                 pic_buf = "const unsigned char pic_%s_data[%d*%d*%d] = \r\n{\r\n\t" \
                           % (FileNameList[i].split('.')[0], img.width, img.height, bit_point)
@@ -1769,7 +1796,7 @@ class Little_tool(QWidget):
                             else:
                                 pic_buf = "0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, " \
                                           % (x, y, alpha, (color >> 8) & 0xff, (color >> 0) & 0xff)
-                                pos += 4
+                                pos += 5
                         else:
                             pic_buf = "0x%02x, 0x%02x, " \
                                       % ((color >> 8) & 0xff, (color >> 0) & 0xff)
@@ -1787,7 +1814,7 @@ class Little_tool(QWidget):
 
             if img.mode == 'P':
                 img_pal = list(img.getpalette())
-                imgpal_len = len(img_pal) // 3
+                imgpal_len = image_pal_len # len(img_pal) // 3
                 # print(img_pal)
                 # print(imgpal_len)
                 pic_buf = "\r\n\t0x%02x, 0x%02x,\r\n\t" % ((imgpal_len >> 0) & 0xff, (imgpal_len >> 8) & 0xff)
@@ -1841,6 +1868,10 @@ class Little_tool(QWidget):
             # if self.tableWidget_pic_file.item(i, 1).text() == 'spi':
             #     continue
 
+            image = QImage()
+            image.load(FilePathList[i])
+            image_pal_len = image.colorCount()
+
             # print(FilePathList[i])
             img = Image.open(FilePathList[i])
             img_pix = img.load()
@@ -1848,23 +1879,23 @@ class Little_tool(QWidget):
             bit_point = 0
             if img.mode == 'RGBA':
                 if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
-                    bit_point = 3
+                    bit_point = self.pixel_byte+1
                 elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
                     bit_point = 4
                 elif self.tableWidget_pic_file.item(i, 0).text() == 'point':
                     bit_point = 4
                 else:
-                    bit_point = 2
+                    bit_point = self.pixel_byte
             elif img.mode == 'RGB':
-                bit_point = 2
+                bit_point = self.pixel_byte
             elif img.mode == 'LA':
-                bit_point = 2
+                bit_point = self.pixel_byte
             elif img.mode == 'P' or img.mode == 'L':
                 bit_point = 1
 
             if (bit_point == 1):
-                pic_buf = "extern const unsigned char pic_%s_data[%d*%d*%d+2+%d*2];\r\n" \
-                          % (FileNameList[i].split('.')[0], img.size[0], img.size[1], bit_point, len(list(img.getpalette()))//3)
+                pic_buf = "extern const unsigned char pic_%s_data[%d*%d*%d+2+%d*%d];\r\n" \
+                          % (FileNameList[i].split('.')[0], img.size[0], img.size[1], bit_point, image_pal_len, self.pixel_byte)
             elif (bit_point == 2) or (bit_point == 3):
                 pic_buf = "extern const unsigned char pic_%s_data[%d*%d*%d];\r\n" \
                           % (FileNameList[i].split('.')[0], img.width, img.height, bit_point)
@@ -1918,6 +1949,10 @@ class Little_tool(QWidget):
             if self.tableWidget_pic_file.item(i, 1).text() == 'spi':
                 continue
 
+            image = QImage()
+            image.load(FilePathList[i])
+            image_pal_len = image.colorCount()
+
             # print(FilePathList[i])
             img = Image.open(FilePathList[i])
             img_pix = img.load()
@@ -1929,23 +1964,23 @@ class Little_tool(QWidget):
             last_pos = 0
             if img.mode == 'RGBA':
                 if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
-                    bit_point = 3
+                    bit_point = self.pixel_byte+1
                 elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
                     bit_point = 4
                 elif self.tableWidget_pic_file.item(i, 0).text() == 'point':
                     bit_point = 4
                 else:
-                    bit_point = 2
+                    bit_point = self.pixel_byte
             elif img.mode == 'RGB':
-                bit_point = 2
+                bit_point = self.pixel_byte
             elif img.mode == 'LA':
-                bit_point = 2
+                bit_point = self.pixel_byte
             elif img.mode == 'P' or img.mode == 'L':
                 bit_point = 1
 
             if (bit_point == 1):
-                pic_buf = "const unsigned char pic_%s_data[%d*%d*%d+2+%d*2] = \r\n{\r\n\t" \
-                          % (FileNameList[i].split('.')[0], img.size[0], img.size[1], bit_point, len(list(img.getpalette()))//3)
+                pic_buf = "const unsigned char pic_%s_data[%d*%d*%d+2+%d*%d] = \r\n{\r\n\t" \
+                          % (FileNameList[i].split('.')[0], img.size[0], img.size[1], bit_point, image_pal_len, self.pixel_byte)
             elif (bit_point == 2) or (bit_point == 3):
                 pic_buf = "const unsigned char pic_%s_data[%d*%d*%d] = \r\n{\r\n\t" \
                           % (FileNameList[i].split('.')[0], img.width, img.height, bit_point)
@@ -1963,7 +1998,7 @@ class Little_tool(QWidget):
                         if color > 0:
                             point_num += 1
                 pic_buf = "const unsigned char pic_%s_data[%d*%d] = \r\n{\r\n\t" \
-                          % (FileNameList[i].split('.')[0], point_num, 4)
+                          % (FileNameList[i].split('.')[0], point_num, 5)
             picture_data.append(pic_buf)
 
             x_align_size = (img.size[0] + 3) / 4 * 4
@@ -2006,9 +2041,9 @@ class Little_tool(QWidget):
                             if color <= 0:
                                 pic_buf = ""
                             else:
-                                pic_buf = "0x%02x, 0x%02x, 0x%02x, 0x%02x, " \
-                                          % (x, y, (color >> 8) & 0xff, (color >> 0) & 0xff)
-                                pos += 4
+                                pic_buf = "0x%02x, 0x%02x, 0x02x, 0x%02x, 0x%02x, " \
+                                          % (x, y, alpha, (color >> 8) & 0xff, (color >> 0) & 0xff)
+                                pos += 5
                         else:
                             pic_buf = "0x%02x, 0x%02x, " \
                                       % ((color >> 8) & 0xff, (color >> 0) & 0xff)
@@ -2026,7 +2061,7 @@ class Little_tool(QWidget):
 
             if img.mode == 'P':
                 img_pal = list(img.getpalette())
-                imgpal_len = len(img_pal) // 3
+                imgpal_len = image_pal_len # len(img_pal) // 3
                 # print(img_pal)
                 # print(imgpal_len)
                 pic_buf = "\r\n\t0x%02x, 0x%02x,\r\n\t" % ((imgpal_len >> 0) & 0xff, (imgpal_len >> 8) & 0xff)
@@ -2080,6 +2115,10 @@ class Little_tool(QWidget):
             if self.tableWidget_pic_file.item(i, 1).text() == 'spi':
                 continue
 
+            image = QImage()
+            image.load(FilePathList[i])
+            image_pal_len = image.colorCount()
+
             # print(FilePathList[i])
             img = Image.open(FilePathList[i])
             img_pix = img.load()
@@ -2087,23 +2126,23 @@ class Little_tool(QWidget):
             bit_point = 0
             if img.mode == 'RGBA':
                 if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
-                    bit_point = 3
+                    bit_point = self.pixel_byte+1
                 elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
                     bit_point = 4
                 elif self.tableWidget_pic_file.item(i, 0).text() == 'point':
                     bit_point = 4
                 else:
-                    bit_point = 2
+                    bit_point = self.pixel_byte
             elif img.mode == 'RGB':
-                bit_point = 2
+                bit_point = self.pixel_byte
             elif img.mode == 'LA':
-                bit_point = 2
+                bit_point = self.pixel_byte
             elif img.mode == 'P' or img.mode == 'L':
                 bit_point = 1
 
             if (bit_point == 1):
-                pic_buf = "extern const unsigned char pic_%s_data[%d*%d*%d+2+%d*2];\r\n" \
-                          % (FileNameList[i].split('.')[0], img.size[0], img.size[1], bit_point, len(list(img.getpalette()))//3)
+                pic_buf = "extern const unsigned char pic_%s_data[%d*%d*%d+2+%d*%d];\r\n" \
+                          % (FileNameList[i].split('.')[0], img.size[0], img.size[1], bit_point, image_pal_len, self.pixel_byte)
             elif (bit_point == 2) or (bit_point == 3):
                 pic_buf = "extern const unsigned char pic_%s_data[%d*%d*%d];\r\n" \
                           % (FileNameList[i].split('.')[0], img.width, img.height, bit_point)
@@ -2121,7 +2160,7 @@ class Little_tool(QWidget):
                         if color > 0:
                             point_num += 1
                 pic_buf = "extern const unsigned char pic_%s_data[%d*%d];\r\n" \
-                          % (FileNameList[i].split('.')[0], point_num, 4)
+                          % (FileNameList[i].split('.')[0], point_num, 5)
             picture_data.append(pic_buf)
 
         pic_buf = "\r\n\r\n"
@@ -2160,6 +2199,11 @@ class Little_tool(QWidget):
         pos = 0
         point_num = 0
         for i in range(len(FilePathList)):
+
+            image = QImage()
+            image.load(FilePathList[i])
+            image_pal_len = image.colorCount()
+
             # print(FilePathList[i])
             img = Image.open(FilePathList[i])
             img_pix = img.load()
@@ -2176,7 +2220,7 @@ class Little_tool(QWidget):
 
                 if img.mode == 'RGBA':
                     if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
-                        pos += img.width*img.height*3
+                        pos += img.width*img.height*(self.pixel_byte+1)
                     elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
                         point_num = 0
                         for y in range(img.size[1]):
@@ -2206,15 +2250,15 @@ class Little_tool(QWidget):
                                     point_num += 1
                         pos += point_num * 5
                     else:
-                        pos += img.width*img.height*2
+                        pos += img.width*img.height*self.pixel_byte
                 elif img.mode == 'RGB':
-                    pos += img.width*img.height*2
+                    pos += img.width*img.height*self.pixel_byte
                 elif img.mode == 'LA':
-                    pos += img.width*img.height*2
+                    pos += img.width*img.height*self.pixel_byte
                 elif img.mode == 'P' or img.mode == 'L':
-                    pos += img.width*img.height+2+(len(list(img.getpalette()))//3)*2
+                    pos += img.width*img.height+2+(image_pal_len)*self.pixel_byte
             else:
-                pic_buf = "\t.addr = (const unsigned char *)%s_data,\r\n" %(FileNameList[i].split('.')[0])
+                pic_buf = "\t.addr = (const unsigned char *)pic_%s_data,\r\n" %(FileNameList[i].split('.')[0])
             picture_data.append(pic_buf)
 
             if img.mode == 'RGBA':
