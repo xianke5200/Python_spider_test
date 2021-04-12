@@ -34,6 +34,8 @@ import sys
 from excel_db import excel_db
 from time_display import Ui_Dialog  # 显示自定义的弹出窗口
 
+import binascii
+
 baudrates = ['110', '300', '600', '1200',
             '2400', '4800', '9600', '14400',
             '19200', '38400', '56000', '57600',
@@ -1211,7 +1213,7 @@ class Little_tool(QWidget):
 
     def window3_UI(self, frame):
         """
-            串口程序UI布局
+            图片转换程序UI布局
         """
         # 第二个布局
         main_frame3 = QMainWindow()
@@ -1360,16 +1362,17 @@ class Little_tool(QWidget):
         self.tableWidget_pic_file.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.tableWidget_pic_file.setHorizontalHeaderLabels(['透明度', '内外flash', '文件'])
         for i in range(len(self.filepath_list)):
-            if self.filepath_list[i].split('.')[1].lower() == 'alpha'.lower():
+            file_element = self.filepath_list[i].split('.')
+            if 'alpha' in file_element:
                 self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('yes'))
-            elif self.filepath_list[i].split('.')[1].lower() == 'point'.lower():
+            elif 'point' in file_element:
                 self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('point'))
-            elif self.filepath_list[i].split('.')[1].lower() == 'pAA'.lower():
+            elif 'pAA' in file_element:
                 self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('pAA'))
             else:
                 self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('no'))
 
-            if self.filepath_list[i].split('.')[1].lower() == 'mcu'.lower():
+            if 'mcu' in file_element:
                 self.tableWidget_pic_file.setItem(i, 1, QTableWidgetItem('force_mcu'))
             else:
                 self.tableWidget_pic_file.setItem(i, 1, QTableWidgetItem('mcu'))
@@ -1392,92 +1395,189 @@ class Little_tool(QWidget):
 
 
     def flash_ex_checked(self):
-        for i in range(self.tableWidget_pic_file.rowCount()):
-            if self.tableWidget_pic_file.item(i, 1).text().lower() == 'force_mcu'.lower():
-                continue
-
-            if self.checkBox_flash.isChecked():
-                self.tableWidget_pic_file.item(i, 1).setText('spi')
+        # row_size = self.tableWidget_pic_file.rowCount()
+        # for i in range(row_size):
+        #     if self.tableWidget_pic_file.item(i, 1).text().lower() == 'force_mcu'.lower():
+        #         continue
+        #
+        #     if self.checkBox_flash.isChecked():
+        #         self.tableWidget_pic_file.setItem(i, 1, QTableWidgetItem('spi'))
+        #         # self.tableWidget_pic_file.item(i, 1).setText('spi')
+        #     else:
+        #         self.tableWidget_pic_file.setItem(i, 1, QTableWidgetItem('mcu'))
+        #         # self.tableWidget_pic_file.item(i, 1).setText('mcu')
+        dir = self.lineEdit_pic_dir.text()
+        self.filename_list.clear()
+        self.filepath_list.clear()
+        self.scan_data(dir)
+        self.tableWidget_pic_file.clear()
+        self.tableWidget_pic_file.setRowCount(len(self.filename_list))
+        self.tableWidget_pic_file.setColumnCount(3)
+        self.tableWidget_pic_file.horizontalHeader().setStretchLastSection(True)
+        self.tableWidget_pic_file.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.tableWidget_pic_file.setHorizontalHeaderLabels(['透明度', '内外flash', '文件'])
+        for i in range(len(self.filepath_list)):
+            file_element = self.filepath_list[i].split('.')
+            if 'pAA' in file_element:
+                self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('pAA'))
             else:
-                self.tableWidget_pic_file.item(i, 1).setText('mcu')
+                if self.checkBox_alpha.isChecked():
+                    self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('yes'))
+                else:
+                    if 'alpha' in file_element:
+                        self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('yes'))
+                    elif 'point' in file_element:
+                        self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('point'))
+                    else:
+                        self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('no'))
+
+            if 'mcu' in file_element:
+                self.tableWidget_pic_file.setItem(i, 1, QTableWidgetItem('force_mcu'))
+            else:
+                if self.checkBox_flash.isChecked():
+                    self.tableWidget_pic_file.setItem(i, 1, QTableWidgetItem('spi'))
+                else:
+                    self.tableWidget_pic_file.setItem(i, 1, QTableWidgetItem('mcu'))
+            self.tableWidget_pic_file.setItem(i, 2, QTableWidgetItem(self.filepath_list[i]))
 
     def alpha_checked(self):
-        for i in range(self.tableWidget_pic_file.rowCount()):
-            if self.tableWidget_pic_file.item(i, 1).text().lower() == 'pAA'.lower():
-                continue
+        # row_size = self.tableWidget_pic_file.rowCount()
+        # for i in range(row_size):
+        #     if self.tableWidget_pic_file.item(i, 1).text().lower() == 'pAA'.lower():
+        #         continue
+        #
+        #     if self.checkBox_alpha.isChecked():
+        #         self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('yes'))
+        #         # self.tableWidget_pic_file.item(i, 0).setText('yes')
+        #     else:
+        #         self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('no'))
+        #         # self.tableWidget_pic_file.item(i, 0).setText('no')
 
-            if self.checkBox_alpha.isChecked():
-                self.tableWidget_pic_file.item(i, 0).setText('yes')
+        dir = self.lineEdit_pic_dir.text()
+        self.filename_list.clear()
+        self.filepath_list.clear()
+        self.scan_data(dir)
+        self.tableWidget_pic_file.clear()
+        self.tableWidget_pic_file.setRowCount(len(self.filename_list))
+        self.tableWidget_pic_file.setColumnCount(3)
+        self.tableWidget_pic_file.horizontalHeader().setStretchLastSection(True)
+        self.tableWidget_pic_file.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.tableWidget_pic_file.setHorizontalHeaderLabels(['透明度', '内外flash', '文件'])
+        for i in range(len(self.filepath_list)):
+            file_element = self.filepath_list[i].split('.')
+            if 'pAA' in file_element:
+                self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('pAA'))
             else:
-                self.tableWidget_pic_file.item(i, 0).setText('no')
+                if self.checkBox_alpha.isChecked():
+                    self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('yes'))
+                else:
+                    if 'alpha' in file_element:
+                        self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('yes'))
+                    elif 'point' in file_element:
+                        self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('point'))
+                    else:
+                        self.tableWidget_pic_file.setItem(i, 0, QTableWidgetItem('no'))
 
-    def start_btn_clicked(self):
-        checkFilePathList = []
-        checkFileNameList = []
-        checkFilePathList_bin = []
-        checkFileNameList_bin = []
+            if 'mcu' in file_element:
+                self.tableWidget_pic_file.setItem(i, 1, QTableWidgetItem('force_mcu'))
+            else:
+                if self.checkBox_flash.isChecked():
+                    self.tableWidget_pic_file.setItem(i, 1, QTableWidgetItem('spi'))
+                else:
+                    self.tableWidget_pic_file.setItem(i, 1, QTableWidgetItem('mcu'))
+            self.tableWidget_pic_file.setItem(i, 2, QTableWidgetItem(self.filepath_list[i]))
+
+    def calculate_crc16(self, buf, len):
+        gx = int(0x8005)
+        crc16 = int(0)
+        if len == 0:
+            return 0
+
+        if buf:
+            for i in range(len):
+                data = buf[i]
+                # print(data, i, len)
+                data = (data << 8) & 0xffff
+                # data = (data * 256) & 0xffff
+                crc16 = (crc16 ^ data) & 0xffff
+                for j in range(8):
+                    msb = crc16 & 0x8000
+                    crc16 = (crc16 << 1) & 0xffff
+                    # crc16 = (crc16 * 2) & 0xffff
+                    if msb == 0x8000:
+                        crc16 = (crc16 ^ gx) & 0xffff
+        else:
+            return 0
+
+        return crc16
+
+    def pic_and_font_bin_file_create(self, FilePathList, FileNameList, FilePathList_bin, FileNameList_bin):
+        # picture.bin and picture_font_merge.bin file create
+        print("create picture_font_merge.bin file")
         color_buf = []
         picture_data = []
-        for i in range(len(self.filepath_list)):
-            checkFilePathList.append(self.filepath_list[i])
-            checkFileNameList.append(self.filename_list[i])
-        for i in range(len(self.filepath_bin_list)):
-            checkFilePathList_bin.append(self.filepath_bin_list[i])
-            checkFileNameList_bin.append(self.filename_bin_list[i])
 
+        pic_offset = 0
+        fileLenList_bin = []
         color_buf.clear()
-        for i in range(len(checkFilePathList)):
+        for i in range(len(FilePathList)):
             # print(checkFilePathList[i])
-            img = Image.open(checkFilePathList[i])
+            img = Image.open(FilePathList[i])
             img_pix = img.load()
             # print("pic width %d, height %d, mode %s" %(img.size[0], img.size[1], img.mode))
             color = 0
             alpha = 0
             if self.tableWidget_pic_file.item(i, 1).text() == 'spi':
-                x_align_size = (img.size[0]+3)/4*4
+                x_align_size = (img.size[0] + 3) / 4 * 4
                 for y in range(img.size[1]):
                     for x in range(img.size[0]):
                         if img.mode == 'RGBA':
                             if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
                                 alpha = img_pix[x, y][3]
-                                color = ((img_pix[x, y][0]>>3) << 11)| \
+                                color = ((img_pix[x, y][2] >> 3) << 11) | \
                                         ((img_pix[x, y][1] >> 2) << 5) | \
-                                        ((img_pix[x, y][2]>>3) << 0)
+                                        ((img_pix[x, y][0] >> 3) << 0)
                             else:
                                 alpha = img_pix[x, y][3]
-                                color = (((img_pix[x, y][0]*alpha//0xFF) >> 3) << 11) | \
-                                        (((img_pix[x, y][1]*alpha//0xFF) >> 2) << 5) | \
-                                        (((img_pix[x, y][2]*alpha//0xFF) >> 3) << 0)
+                                # color = (((img_pix[x, y][2]) >> 3) << 11) | \
+                                #         (((img_pix[x, y][1]) >> 2) << 5) | \
+                                #         (((img_pix[x, y][0]) >> 3) << 0)
+                                color = (((img_pix[x, y][2] * alpha // 0xFF) >> 3) << 11) | \
+                                        (((img_pix[x, y][1] * alpha // 0xFF) >> 2) << 5) | \
+                                        (((img_pix[x, y][0] * alpha // 0xFF) >> 3) << 0)
                         elif img.mode == 'RGB':
-                            color = ((img_pix[x, y][0] >> 3) << 11) | \
+                            color = ((img_pix[x, y][2] >> 3) << 11) | \
                                     ((img_pix[x, y][1] >> 2) << 5) | \
-                                    ((img_pix[x, y][2] >> 3) << 0)
+                                    ((img_pix[x, y][0] >> 3) << 0)
+                        elif img.mode == 'LA':
+                            color = ((img_pix[x, y][0] >> 0) << 8) | \
+                                    ((img_pix[x, y][1] >> 0) << 0)
                         elif img.mode == 'L' or img.mode == 'P':
                             color = ((img_pix[x, y] >> 0) << 0)
 
                         if img.mode == 'RGBA':
                             if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
                                 color_buf.append(alpha)
-                                color_buf.append((color>>8)&0xFF)
-                                color_buf.append((color>>0)&0xFF)
+                                color_buf.append((color >> 8) & 0xFF)
+                                color_buf.append((color >> 0) & 0xFF)
                             elif self.tableWidget_pic_file.item(i, 0).text() == 'point':
                                 if color <= 0:
                                     continue
                                 color_buf.append(x)
                                 color_buf.append(y)
-                                color_buf.append((color>>8)&0xFF)
-                                color_buf.append((color>>0)&0xFF)
+                                color_buf.append((color >> 8) & 0xFF)
+                                color_buf.append((color >> 0) & 0xFF)
                             elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
                                 if color <= 0:
                                     continue
                                 color_buf.append(x)
                                 color_buf.append(y)
-                                color_buf.append((color>>8)&0xFF)
-                                color_buf.append((color>>0)&0xFF)
+                                color_buf.append((color >> 8) & 0xFF)
+                                color_buf.append((color >> 0) & 0xFF)
                             else:
                                 color_buf.append((color >> 8) & 0xFF)
                                 color_buf.append((color >> 0) & 0xFF)
-                        elif img.mode == 'RGB':
+                        elif img.mode == 'RGB' or img.mode == 'LA':
                             color_buf.append((color >> 8) & 0xFF)
                             color_buf.append((color >> 0) & 0xFF)
                         elif img.mode == 'L' or img.mode == 'P':
@@ -1487,21 +1587,779 @@ class Little_tool(QWidget):
                         color_buf.clear()
 
                 if img.mode == 'P':
-                    img_pal = list(img.convert("RGB").getdata())
-                    color_buf.append((len(img_pal)>>0)&0xFF)
-                    color_buf.append((len(img_pal)>>1)&0xFF)
+                    img_pal = list(img.getpalette())
+                    imgpal_len = len(img_pal) // 3
+                    # print(img_pal)
+                    # print(imgpal_len)
+                    color_buf.append((imgpal_len >> 0) & 0xFF)
+                    color_buf.append((imgpal_len >> 8) & 0xFF)
 
-                    for pal_index in range(len(img_pal)):
-                        table = (img_pal[pal_index][0]<<0)|(img_pal[pal_index][1]<<5)|(img_pal[pal_index][2]<<11)
-                        color_buf.append((table>>8)&0xFF)
-                        color_buf.append((table>>0)&0xFF)
+                    for pal_index in range(imgpal_len):
+                        r = img_pal[pal_index + 0] >> 3
+                        g = img_pal[pal_index + 1] >> 2
+                        b = img_pal[pal_index + 2] >> 3
+                        table = (r << 0) | (g << 5) | (b << 11)
+                        color_buf.append((table >> 8) & 0xFF)
+                        color_buf.append((table >> 0) & 0xFF)
                         picture_data += color_buf
                         color_buf.clear()
 
         with open('picture.bin', 'wb') as f:
             # print(picture_data)
+            f.seek(0)
             for data in picture_data:
                 f.write(data.to_bytes(1, byteorder='little'))
+
+        # picture_font_merge.bin create
+        font_data = []
+
+        for i in range(len(FilePathList_bin)):
+            with open(FilePathList_bin[i], "rb") as f_bin:
+                data = f_bin.readline()
+                while data:
+                    for bin_data in data:
+                        font_data.append(bin_data)
+                    data = f_bin.readline()
+            fileLenList_bin.append('#define\t%s_OFFSET\t\t0x%08x\r\n' % (FileNameList_bin[i].split('.')[0].upper(), pic_offset))
+            pic_offset = pic_offset + os.path.getsize(FilePathList_bin[i])
+
+        if (len(FilePathList_bin)):
+            remind_size = (len(font_data) + 16) % 4096
+
+            if remind_size > 0:
+                temp = [0xff for _ in range(4096 - remind_size)]
+                font_data = font_data + temp
+                pic_offset = len(font_data) + 16 + 4096 - remind_size
+            else:
+                pic_offset = len(font_data) + 16
+
+            picture_data = font_data + picture_data
+        else:
+            pic_offset = 16
+
+        # crc_16 = 0
+        crc_16 = self.calculate_crc16(picture_data, len(picture_data))
+        buf = [0] * 16
+        buf[0] = ((crc_16 >> 0) & 0xff)
+        buf[1] = ((crc_16 >> 8) & 0xff)
+        buf[2] = ((len(picture_data) >> 0) & 0xff)
+        buf[3] = ((len(picture_data) >> 8) & 0xff)
+        buf[4] = ((len(picture_data) >> 16) & 0xff)
+        buf[5] = ((len(picture_data) >> 24) & 0xff)
+
+        picture_data = buf + picture_data
+
+        with open("picture_font_merge.bin", "wb") as f:
+            f.seek(0)
+            for data in picture_data:
+                # print(data)
+                f.write(data.to_bytes(1, byteorder='little'))
+
+        return fileLenList_bin, pic_offset, crc_16
+
+    def pic_all_data_c_file_create(self, FilePathList, FileNameList):
+        # picture_data.c file create
+        print("create picture_all_data.c file")
+        picture_data = []
+        pic_buf = []
+        pic_buf.clear()
+        picture_data.clear()
+        pic_buf = "/*************************************************************\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "** this file is all picture data source file\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "** by chenlue\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "*************************************************************/\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "\r\n\r\n"
+        picture_data.append(pic_buf)
+
+        for i in range(len(FilePathList)):
+            # if self.tableWidget_pic_file.item(i, 1).text() == 'spi':
+            #     continue
+
+            # print(FilePathList[i])
+            img = Image.open(FilePathList[i])
+            img_pix = img.load()
+            # print("pic width %d, height %d, mode %s" %(img.size[0], img.size[1], img.mode))
+            color = 0
+            alpha = 0
+            bit_point = 0
+            pos = 0
+            last_pos = 0
+            if img.mode == 'RGBA':
+                if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
+                    bit_point = 3
+                elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
+                    bit_point = 4
+                elif self.tableWidget_pic_file.item(i, 0).text() == 'point':
+                    bit_point = 4
+                else:
+                    bit_point = 2
+            elif img.mode == 'RGB':
+                bit_point = 2
+            elif img.mode == 'LA':
+                bit_point = 2
+            elif img.mode == 'P' or img.mode == 'L':
+                bit_point = 1
+
+            if bit_point == 1:
+                pic_buf = "const unsigned char pic_%s_data[%d*%d*%d+2+%d*2] = \r\n{\r\n\t" \
+                          % (FileNameList[i].split('.')[0], img.size[0], img.size[1], bit_point, len(list(img.getpalette()))//3)
+            elif (bit_point == 2) or (bit_point == 3):
+                pic_buf = "const unsigned char pic_%s_data[%d*%d*%d] = \r\n{\r\n\t" \
+                          % (FileNameList[i].split('.')[0], img.width, img.height, bit_point)
+            else:
+                point_num = 0
+                for y in range(img.size[1]):
+                    for x in range(img.size[0]):
+                        alpha = img_pix[x, y][3]
+                        # color = (((img_pix[x, y][2]) >> 3) << 11) | \
+                        #         (((img_pix[x, y][1]) >> 2) << 5) | \
+                        #         (((img_pix[x, y][0]) >> 3) << 0)
+                        color = (((img_pix[x, y][2] * alpha // 0xFF) >> 3) << 11) | \
+                                (((img_pix[x, y][1] * alpha // 0xFF) >> 2) << 5) | \
+                                (((img_pix[x, y][0] * alpha // 0xFF) >> 3) << 0)
+                        if color > 0:
+                            point_num += 1
+                pic_buf = "const unsigned char pic_%s_data[%d*%d] = \r\n{\r\n\t" \
+                          % (FileNameList[i].split('.')[0], point_num, 5)
+            picture_data.append(pic_buf)
+
+            x_align_size = (img.size[0] + 3) / 4 * 4
+            for y in range(img.size[1]):
+                for x in range(img.size[0]):
+                    if img.mode == 'RGBA':
+                        if bit_point == 3:
+                            alpha = img_pix[x, y][3]
+                            color = ((img_pix[x, y][2] >> 3) << 11) | \
+                                    ((img_pix[x, y][1] >> 2) << 5) | \
+                                    ((img_pix[x, y][0] >> 3) << 0)
+                        else:
+                            alpha = img_pix[x, y][3]
+                            # color = (((img_pix[x, y][2]) >> 3) << 11) | \
+                            #         (((img_pix[x, y][1]) >> 2) << 5) | \
+                            #         (((img_pix[x, y][0]) >> 3) << 0)
+                            color = (((img_pix[x, y][2] * alpha // 0xFF) >> 3) << 11) | \
+                                    (((img_pix[x, y][1] * alpha // 0xFF) >> 2) << 5) | \
+                                    (((img_pix[x, y][0] * alpha // 0xFF) >> 3) << 0)
+                    elif img.mode == 'RGB':
+                        color = ((img_pix[x, y][2] >> 3) << 11) | \
+                                ((img_pix[x, y][1] >> 2) << 5) | \
+                                ((img_pix[x, y][0] >> 3) << 0)
+                    elif img.mode == 'LA':
+                        color = ((img_pix[x, y][0] >> 0) << 8) | \
+                                ((img_pix[x, y][1] >> 0) << 0)
+                    elif img.mode == 'L' or img.mode == 'P':
+                        color = ((img_pix[x, y] >> 0) << 0)
+
+                    if (pos % 16 == 0) and (pos != last_pos):
+                        last_pos = pos
+                        pic_buf = "\r\n\t"
+                        picture_data.append(pic_buf)
+
+                    if img.mode == 'RGBA':
+                        if bit_point == 3:
+                            pic_buf = "0x%02x, 0x%02x, 0x%02x, " % (alpha, (color >> 8) & 0xff, (color >> 0) & 0xff)
+                            pos += 3
+                        elif bit_point == 4:
+                            if color <= 0:
+                                pic_buf = ""
+                            else:
+                                pic_buf = "0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, " \
+                                          % (x, y, alpha, (color >> 8) & 0xff, (color >> 0) & 0xff)
+                                pos += 4
+                        else:
+                            pic_buf = "0x%02x, 0x%02x, " \
+                                      % ((color >> 8) & 0xff, (color >> 0) & 0xff)
+                            pos += 2
+                    elif img.mode == 'RGB' or img.mode == 'LA':
+                        pic_buf = "0x%02x, 0x%02x, " \
+                                  % ((color >> 8) & 0xff, (color >> 0) & 0xff)
+                        pos += 2
+                    elif img.mode == 'L' or img.mode == 'P':
+                        pic_buf = "0x%02x, " \
+                                  % ((color >> 0) & 0xff)
+                        pos += 1
+
+                    picture_data.append(pic_buf)
+
+            if img.mode == 'P':
+                img_pal = list(img.getpalette())
+                imgpal_len = len(img_pal) // 3
+                # print(img_pal)
+                # print(imgpal_len)
+                pic_buf = "\r\n\t0x%02x, 0x%02x,\r\n\t" % ((imgpal_len >> 0) & 0xff, (imgpal_len >> 8) & 0xff)
+                picture_data.append(pic_buf)
+
+                pos = 0
+                last_pos = 0
+                for pal_index in range(imgpal_len):
+                    if (pos % 16) == 0 and (pos != last_pos):
+                        last_pos = pos
+                        pic_buf = "\r\n\t"
+                        picture_data.append(pic_buf)
+                    r = img_pal[pal_index + 0] >> 3
+                    g = img_pal[pal_index + 1] >> 2
+                    b = img_pal[pal_index + 2] >> 3
+                    table = (r << 0) | (g << 5) | (b << 11)
+                    pic_buf = "0x%02x, 0x%02x, " % ((table >> 8) & 0xff, (table >> 0) & 0xff)
+                    picture_data.append(pic_buf)
+                    pos += 2
+
+            pic_buf = "\r\n};\r\n\r\n"
+            picture_data.append(pic_buf)
+
+        with open("picture_all_data.c", 'w+') as pic_data:
+            for data in picture_data:
+                pic_data.write(data)
+
+    def pic_all_data_h_file_create(self, FilePathList, FileNameList):
+        # picture_all_data.h file create
+        print("create picture_all_data.h file")
+        picture_data = []
+        pic_buf = []
+        pic_buf.clear()
+        picture_data.clear()
+        pic_buf = "/*************************************************************\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "** this file is all picture data head file\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "** by chenlue\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "*************************************************************/\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "#ifndef _PICTURE_ALL_DATA_H\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "#define _PICTURE_ALL_DATA_H\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "\r\n\r\n"
+        picture_data.append(pic_buf)
+
+        for i in range(len(FilePathList)):
+            # if self.tableWidget_pic_file.item(i, 1).text() == 'spi':
+            #     continue
+
+            # print(FilePathList[i])
+            img = Image.open(FilePathList[i])
+            img_pix = img.load()
+            # print("pic width %d, height %d, mode %s" %(img.size[0], img.size[1], img.mode))
+            bit_point = 0
+            if img.mode == 'RGBA':
+                if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
+                    bit_point = 3
+                elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
+                    bit_point = 4
+                elif self.tableWidget_pic_file.item(i, 0).text() == 'point':
+                    bit_point = 4
+                else:
+                    bit_point = 2
+            elif img.mode == 'RGB':
+                bit_point = 2
+            elif img.mode == 'LA':
+                bit_point = 2
+            elif img.mode == 'P' or img.mode == 'L':
+                bit_point = 1
+
+            if (bit_point == 1):
+                pic_buf = "extern const unsigned char pic_%s_data[%d*%d*%d+2+%d*2];\r\n" \
+                          % (FileNameList[i].split('.')[0], img.size[0], img.size[1], bit_point, len(list(img.getpalette()))//3)
+            elif (bit_point == 2) or (bit_point == 3):
+                pic_buf = "extern const unsigned char pic_%s_data[%d*%d*%d];\r\n" \
+                          % (FileNameList[i].split('.')[0], img.width, img.height, bit_point)
+            else:
+                point_num = 0
+                for y in range(img.size[1]):
+                    for x in range(img.size[0]):
+                        alpha = img_pix[x, y][3]
+                        # color = (((img_pix[x, y][2]) >> 3) << 11) | \
+                        #         (((img_pix[x, y][1]) >> 2) << 5) | \
+                        #         (((img_pix[x, y][0]) >> 3) << 0)
+                        color = (((img_pix[x, y][2] * alpha // 0xFF) >> 3) << 11) | \
+                                (((img_pix[x, y][1] * alpha // 0xFF) >> 2) << 5) | \
+                                (((img_pix[x, y][0] * alpha // 0xFF) >> 3) << 0)
+                        if color > 0:
+                            point_num += 1
+                pic_buf = "extern const unsigned char pic_%s_data[%d*%d];\r\n" \
+                          % (FileNameList[i].split('.')[0], point_num, 5)
+            picture_data.append(pic_buf)
+
+        pic_buf = "\r\n\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "#endif// _PICTURE_ALL_DATA_H\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "\r\n"
+        picture_data.append(pic_buf)
+
+        with open("picture_all_data.h", 'w+') as pic_data:
+            for data in picture_data:
+                pic_data.write(data)
+
+    def pic_data_c_file_create(self, FilePathList, FileNameList):
+        # picture_data.c file create
+        print("create picture_data.c file")
+        picture_data = []
+        pic_buf = []
+        pic_buf.clear()
+        picture_data.clear()
+        pic_buf = "/*************************************************************\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "** this file is all picture data source file\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "** by chenlue\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "*************************************************************/\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "\r\n\r\n"
+        picture_data.append(pic_buf)
+
+        for i in range(len(FilePathList)):
+            if self.tableWidget_pic_file.item(i, 1).text() == 'spi':
+                continue
+
+            # print(FilePathList[i])
+            img = Image.open(FilePathList[i])
+            img_pix = img.load()
+            # print("pic width %d, height %d, mode %s" %(img.size[0], img.size[1], img.mode))
+            color = 0
+            alpha = 0
+            bit_point = 0
+            pos = 0
+            last_pos = 0
+            if img.mode == 'RGBA':
+                if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
+                    bit_point = 3
+                elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
+                    bit_point = 4
+                elif self.tableWidget_pic_file.item(i, 0).text() == 'point':
+                    bit_point = 4
+                else:
+                    bit_point = 2
+            elif img.mode == 'RGB':
+                bit_point = 2
+            elif img.mode == 'LA':
+                bit_point = 2
+            elif img.mode == 'P' or img.mode == 'L':
+                bit_point = 1
+
+            if (bit_point == 1):
+                pic_buf = "const unsigned char pic_%s_data[%d*%d*%d+2+%d*2] = \r\n{\r\n\t" \
+                          % (FileNameList[i].split('.')[0], img.size[0], img.size[1], bit_point, len(list(img.getpalette()))//3)
+            elif (bit_point == 2) or (bit_point == 3):
+                pic_buf = "const unsigned char pic_%s_data[%d*%d*%d] = \r\n{\r\n\t" \
+                          % (FileNameList[i].split('.')[0], img.width, img.height, bit_point)
+            else:
+                point_num = 0
+                for y in range(img.size[1]):
+                    for x in range(img.size[0]):
+                        alpha = img_pix[x, y][3]
+                        # color = (((img_pix[x, y][2]) >> 3) << 11) | \
+                        #         (((img_pix[x, y][1]) >> 2) << 5) | \
+                        #         (((img_pix[x, y][0]) >> 3) << 0)
+                        color = (((img_pix[x, y][2] * alpha // 0xFF) >> 3) << 11) | \
+                                (((img_pix[x, y][1] * alpha // 0xFF) >> 2) << 5) | \
+                                (((img_pix[x, y][0] * alpha // 0xFF) >> 3) << 0)
+                        if color > 0:
+                            point_num += 1
+                pic_buf = "const unsigned char pic_%s_data[%d*%d] = \r\n{\r\n\t" \
+                          % (FileNameList[i].split('.')[0], point_num, 4)
+            picture_data.append(pic_buf)
+
+            x_align_size = (img.size[0] + 3) / 4 * 4
+            for y in range(img.size[1]):
+                for x in range(img.size[0]):
+                    if img.mode == 'RGBA':
+                        if bit_point == 3:
+                            alpha = img_pix[x, y][3]
+                            color = ((img_pix[x, y][2] >> 3) << 11) | \
+                                    ((img_pix[x, y][1] >> 2) << 5) | \
+                                    ((img_pix[x, y][0] >> 3) << 0)
+                        else:
+                            alpha = img_pix[x, y][3]
+                            # color = (((img_pix[x, y][2]) >> 3) << 11) | \
+                            #         (((img_pix[x, y][1]) >> 2) << 5) | \
+                            #         (((img_pix[x, y][0]) >> 3) << 0)
+                            color = (((img_pix[x, y][2] * alpha // 0xFF) >> 3) << 11) | \
+                                    (((img_pix[x, y][1] * alpha // 0xFF) >> 2) << 5) | \
+                                    (((img_pix[x, y][0] * alpha // 0xFF) >> 3) << 0)
+                    elif img.mode == 'RGB':
+                        color = ((img_pix[x, y][2] >> 3) << 11) | \
+                                ((img_pix[x, y][1] >> 2) << 5) | \
+                                ((img_pix[x, y][0] >> 3) << 0)
+                    elif img.mode == 'LA':
+                        color = ((img_pix[x, y][0] >> 0) << 8) | \
+                                ((img_pix[x, y][1] >> 0) << 0)
+                    elif img.mode == 'L' or img.mode == 'P':
+                        color = ((img_pix[x, y] >> 0) << 0)
+
+                    if (pos % 16 == 0) and (pos != last_pos):
+                        last_pos = pos
+                        pic_buf = "\r\n\t"
+                        picture_data.append(pic_buf)
+
+                    if img.mode == 'RGBA':
+                        if bit_point == 3:
+                            pic_buf = "0x%02x, 0x%02x, 0x%02x, " % (alpha, (color >> 8) & 0xff, (color >> 0) & 0xff)
+                            pos += 3
+                        elif bit_point == 4:
+                            if color <= 0:
+                                pic_buf = ""
+                            else:
+                                pic_buf = "0x%02x, 0x%02x, 0x%02x, 0x%02x, " \
+                                          % (x, y, (color >> 8) & 0xff, (color >> 0) & 0xff)
+                                pos += 4
+                        else:
+                            pic_buf = "0x%02x, 0x%02x, " \
+                                      % ((color >> 8) & 0xff, (color >> 0) & 0xff)
+                            pos += 2
+                    elif img.mode == 'RGB' or img.mode == 'LA':
+                        pic_buf = "0x%02x, 0x%02x, " \
+                                  % ((color >> 8) & 0xff, (color >> 0) & 0xff)
+                        pos += 2
+                    elif img.mode == 'L' or img.mode == 'P':
+                        pic_buf = "0x%02x, " \
+                                  % ((color >> 0) & 0xff)
+                        pos += 1
+
+                    picture_data.append(pic_buf)
+
+            if img.mode == 'P':
+                img_pal = list(img.getpalette())
+                imgpal_len = len(img_pal) // 3
+                # print(img_pal)
+                # print(imgpal_len)
+                pic_buf = "\r\n\t0x%02x, 0x%02x,\r\n\t" % ((imgpal_len >> 0) & 0xff, (imgpal_len >> 8) & 0xff)
+                picture_data.append(pic_buf)
+
+                pos = 0
+                last_pos = 0
+                for pal_index in range(imgpal_len):
+                    if (pos % 16) == 0 and (pos != last_pos):
+                        last_pos = pos
+                        pic_buf = "\r\n\t"
+                        picture_data.append(pic_buf)
+                    r = img_pal[pal_index + 0] >> 3
+                    g = img_pal[pal_index + 1] >> 2
+                    b = img_pal[pal_index + 2] >> 3
+                    table = (r << 0) | (g << 5) | (b << 11)
+                    pic_buf = "0x%02x, 0x%02x, " % ((table >> 8) & 0xff, (table >> 0) & 0xff)
+                    picture_data.append(pic_buf)
+                    pos += 2
+
+            pic_buf = "\r\n};\r\n\r\n"
+            picture_data.append(pic_buf)
+
+        with open("picture_data.c", 'w+') as pic_data:
+            for data in picture_data:
+                pic_data.write(data)
+
+    def pic_data_h_file_create(self, FilePathList, FileNameList):
+        # picture_data.h file create
+        print("create picture_data.h file")
+        picture_data = []
+        pic_buf = []
+        pic_buf.clear()
+        picture_data.clear()
+        pic_buf = "/*************************************************************\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "** this file is all picture data head file\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "** by chenlue\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "*************************************************************/\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "#ifndef _PICTURE_DATA_H\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "#define _PICTURE_DATA_H\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "\r\n\r\n"
+        picture_data.append(pic_buf)
+
+        for i in range(len(FilePathList)):
+            if self.tableWidget_pic_file.item(i, 1).text() == 'spi':
+                continue
+
+            # print(FilePathList[i])
+            img = Image.open(FilePathList[i])
+            img_pix = img.load()
+            # print("pic width %d, height %d, mode %s" %(img.size[0], img.size[1], img.mode))
+            bit_point = 0
+            if img.mode == 'RGBA':
+                if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
+                    bit_point = 3
+                elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
+                    bit_point = 4
+                elif self.tableWidget_pic_file.item(i, 0).text() == 'point':
+                    bit_point = 4
+                else:
+                    bit_point = 2
+            elif img.mode == 'RGB':
+                bit_point = 2
+            elif img.mode == 'LA':
+                bit_point = 2
+            elif img.mode == 'P' or img.mode == 'L':
+                bit_point = 1
+
+            if (bit_point == 1):
+                pic_buf = "extern const unsigned char pic_%s_data[%d*%d*%d+2+%d*2];\r\n" \
+                          % (FileNameList[i].split('.')[0], img.size[0], img.size[1], bit_point, len(list(img.getpalette()))//3)
+            elif (bit_point == 2) or (bit_point == 3):
+                pic_buf = "extern const unsigned char pic_%s_data[%d*%d*%d];\r\n" \
+                          % (FileNameList[i].split('.')[0], img.width, img.height, bit_point)
+            else:
+                point_num = 0
+                for y in range(img.size[1]):
+                    for x in range(img.size[0]):
+                        alpha = img_pix[x, y][3]
+                        # color = (((img_pix[x, y][2]) >> 3) << 11) | \
+                        #         (((img_pix[x, y][1]) >> 2) << 5) | \
+                        #         (((img_pix[x, y][0]) >> 3) << 0)
+                        color = (((img_pix[x, y][2] * alpha // 0xFF) >> 3) << 11) | \
+                                (((img_pix[x, y][1] * alpha // 0xFF) >> 2) << 5) | \
+                                (((img_pix[x, y][0] * alpha // 0xFF) >> 3) << 0)
+                        if color > 0:
+                            point_num += 1
+                pic_buf = "extern const unsigned char pic_%s_data[%d*%d];\r\n" \
+                          % (FileNameList[i].split('.')[0], point_num, 4)
+            picture_data.append(pic_buf)
+
+        pic_buf = "\r\n\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "#endif// _PICTURE_DATA_H\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "\r\n"
+        picture_data.append(pic_buf)
+
+        with open("picture_data.h", 'w+') as pic_data:
+            for data in picture_data:
+                pic_data.write(data)
+
+    def pic_c_file_create(self, FilePathList, FileNameList):
+        # picture.c file create
+        print("create picture.c file")
+        picture_data = []
+        pic_buf = []
+        pic_buf.clear()
+        picture_data.clear()
+        pic_buf = "/*************************************************************\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "** this file is all picture struct information source file\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "** by chenlue\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "*************************************************************/\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "#include \"picture.h\"\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "#include \"picture_data.h\"\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "\r\n\r\n"
+        picture_data.append(pic_buf)
+
+        pos = 0
+        point_num = 0
+        for i in range(len(FilePathList)):
+            # print(FilePathList[i])
+            img = Image.open(FilePathList[i])
+            img_pix = img.load()
+            # print("pic width %d, height %d, mode %s" %(img.size[0], img.size[1], img.mode))
+            alpha = 0
+            bit_point = 0
+
+            pic_buf = "const picture_info_struct pic_%s_info = {\r\n" \
+                        %(FileNameList[i].split('.')[0])
+            picture_data.append(pic_buf)
+
+            if (self.tableWidget_pic_file.item(i, 1).text() == 'spi'):
+                pic_buf = "\t.addr = (const unsigned char *)0x%08x,\r\n" %(pos)
+
+                if img.mode == 'RGBA':
+                    if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
+                        pos += img.width*img.height*3
+                    elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
+                        point_num = 0
+                        for y in range(img.size[1]):
+                            for x in range(img.size[0]):
+                                alpha = img_pix[x, y][3]
+                                # color = (((img_pix[x, y][2]) >> 3) << 11) | \
+                                #         (((img_pix[x, y][1]) >> 2) << 5) | \
+                                #         (((img_pix[x, y][0]) >> 3) << 0)
+                                color = (((img_pix[x, y][2] * alpha // 0xFF) >> 3) << 11) | \
+                                        (((img_pix[x, y][1] * alpha // 0xFF) >> 2) << 5) | \
+                                        (((img_pix[x, y][0] * alpha // 0xFF) >> 3) << 0)
+                                if color > 0:
+                                    point_num += 1
+                        pos += point_num*5
+                    elif self.tableWidget_pic_file.item(i, 0).text() == 'point':
+                        point_num = 0
+                        for y in range(img.size[1]):
+                            for x in range(img.size[0]):
+                                alpha = img_pix[x, y][3]
+                                # color = (((img_pix[x, y][2]) >> 3) << 11) | \
+                                #         (((img_pix[x, y][1]) >> 2) << 5) | \
+                                #         (((img_pix[x, y][0]) >> 3) << 0)
+                                color = (((img_pix[x, y][2] * alpha // 0xFF) >> 3) << 11) | \
+                                        (((img_pix[x, y][1] * alpha // 0xFF) >> 2) << 5) | \
+                                        (((img_pix[x, y][0] * alpha // 0xFF) >> 3) << 0)
+                                if color > 0:
+                                    point_num += 1
+                        pos += point_num * 5
+                    else:
+                        pos += img.width*img.height*2
+                elif img.mode == 'RGB':
+                    pos += img.width*img.height*2
+                elif img.mode == 'LA':
+                    pos += img.width*img.height*2
+                elif img.mode == 'P' or img.mode == 'L':
+                    pos += img.width*img.height+2+(len(list(img.getpalette()))//3)*2
+            else:
+                pic_buf = "\t.addr = (const unsigned char *)%s_data,\r\n" %(FileNameList[i].split('.')[0])
+            picture_data.append(pic_buf)
+
+            if img.mode == 'RGBA':
+                if self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
+                    pic_buf = "\t.width = (%d<<8)|%d,\r\n" % (img.width, img.height)
+                    picture_data.append(pic_buf)
+
+                    pic_buf = "\t.height = %d,\r\n" % (point_num*5)
+                    picture_data.append(pic_buf)
+                elif self.tableWidget_pic_file.item(i, 0).text() == 'point':
+                    pic_buf = "\t.width = (%d<<8)|%d,\r\n" % (img.width, img.height)
+                    picture_data.append(pic_buf)
+
+                    pic_buf = "\t.height = %d,\r\n" % (point_num * 5)
+                    picture_data.append(pic_buf)
+                else:
+                    pic_buf = "\t.width = %d,\r\n" % (img.width)
+                    picture_data.append(pic_buf)
+
+                    pic_buf = "\t.height = %d,\r\n" % (img.height)
+                    picture_data.append(pic_buf)
+            else:
+                pic_buf = "\t.width = %d,\r\n" % (img.width)
+                picture_data.append(pic_buf)
+
+                pic_buf = "\t.height = %d,\r\n" % (img.height)
+                picture_data.append(pic_buf)
+
+            if img.mode == 'RGBA':
+                if self.tableWidget_pic_file.item(i, 0).text() == 'yes':
+                    pic_buf = "\t.alpha = 1,\r\n"
+                elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
+                    pic_buf = "\t.alpha = 4,\r\n"
+                elif self.tableWidget_pic_file.item(i, 0).text() == 'point':
+                    pic_buf = "\t.alpha = 4,\r\n"
+                else:
+                    pic_buf = "\t.alpha = 0,\r\n"
+            elif img.mode == 'RGB':
+                pic_buf = "\t.alpha = 0,\r\n"
+            elif img.mode == 'LA':
+                pic_buf = "\t.alpha = 0,\r\n"
+            elif img.mode == 'P' or img.mode == "L":
+                pic_buf = "\t.alpha = 3,\r\n"
+            picture_data.append(pic_buf)
+
+            if self.tableWidget_pic_file.item(i, 1).text() == 'spi':
+                pic_buf = "\t.external_flag = 1,\r\n"
+            else:
+                pic_buf = "\t.external_flag = 0,\r\n"
+            picture_data.append(pic_buf)
+
+            pic_buf = "\t};\r\n\r\n"
+            picture_data.append(pic_buf)
+
+        with open("picture.c", 'w+') as pic_data:
+            for data in picture_data:
+                pic_data.write(data)
+
+    def pic_h_file_create(self, FilePathList, FileNameList, file_len_list, crc16, pic_offset):
+        # picture.c file create
+        print("create picture.h file")
+        picture_data = []
+        pic_buf = []
+        pic_buf.clear()
+        picture_data.clear()
+        pic_buf = "/*************************************************************\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "** this file is all picture struct information head file\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "** by chenlue\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "*************************************************************/\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "#ifndef _PICTURE_H\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "#define _PICTURE_H\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "\r\n\r\n"
+        picture_data.append(pic_buf)
+
+        pic_buf = "#define PIC_CRC16\t\t0x%04x\r\n" %(crc16&0xffff)
+        picture_data.append(pic_buf)
+        pic_buf = "#define PIC_HEAD_SIZE\t16\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "#define PIC_OFFSET\t\t0x%08x\r\n" %(pic_offset)
+        picture_data.append(pic_buf)
+
+        pic_buf = "\r\n\r\n"
+        picture_data.append(pic_buf)
+
+        for i in range(len(file_len_list)):
+            picture_data.append(file_len_list[i])
+
+        pic_buf = "\r\n\r\n"
+        picture_data.append(pic_buf)
+
+        picture_data.append("typedef struct\r\n")
+        picture_data.append("{\r\n")
+        picture_data.append("\tconst unsigned char *addr;\r\n")
+        picture_data.append("\tconst unsigned short width;\r\n")
+        picture_data.append("\tconst unsigned short height;\r\n")
+        picture_data.append("\tconst unsigned char alpha;//0: no alpha, 1: has alpha, 2:point display, 3:8bit(256 color.)\r\n")
+        picture_data.append("\tconst unsigned char external_flag;//0: mcu flash, 1: external spi flash or emmc.\r\n")
+        picture_data.append("}picture_info_struct;\r\n")
+        picture_data.append("\r\n\r\n")
+
+        for i in range(len(FileNameList)):
+            pic_buf = "extern const picture_info_struct pic_%s_info;\r\n" \
+                        %(FileNameList[i].split('.')[0])
+            picture_data.append(pic_buf)
+
+        pic_buf = "\r\n\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "#endif //_PICTURE_H\r\n"
+        picture_data.append(pic_buf)
+        pic_buf = "\r\n"
+        picture_data.append(pic_buf)
+
+        with open("picture.h", 'w+') as pic_data:
+            for data in picture_data:
+                pic_data.write(data)
+
+    def start_btn_clicked(self):
+        checkFilePathList = []
+        checkFileNameList = []
+        checkFilePathList_bin = []
+        checkFileNameList_bin = []
+
+        for i in range(len(self.filepath_list)):
+            checkFilePathList.append(self.filepath_list[i])
+            checkFileNameList.append(self.filename_list[i])
+        for i in range(len(self.filepath_bin_list)):
+            checkFilePathList_bin.append(self.filepath_bin_list[i])
+            checkFileNameList_bin.append(self.filename_bin_list[i])
+
+        fileLenList_bin, pic_offset, crc_16 = self.pic_and_font_bin_file_create(checkFilePathList, checkFileNameList, checkFilePathList_bin, checkFileNameList_bin)
+        self.pic_all_data_c_file_create(checkFilePathList, checkFileNameList)
+        self.pic_all_data_h_file_create(checkFilePathList, checkFileNameList)
+        self.pic_data_c_file_create(checkFilePathList, checkFileNameList)
+        self.pic_data_h_file_create(checkFilePathList, checkFileNameList)
+        self.pic_c_file_create(checkFilePathList, checkFileNameList)
+        self.pic_h_file_create(checkFilePathList, checkFileNameList, fileLenList_bin, crc_16, pic_offset)
+
+        QMessageBox.about(self, '字库生成', '字库生成成功')
+
 
 # 继承threading.Thread
 '''
