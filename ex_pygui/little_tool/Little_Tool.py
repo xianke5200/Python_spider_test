@@ -54,6 +54,10 @@ class Little_tool(QWidget):
         super().__init__()
 
         self.setWindowTitle("测试")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("my.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.setWindowIcon(icon)
+
         # 窗口大小
         self.resize(800, 600)
         # self.setFixedSize(800, 600)  # 设置窗口为固定尺寸， 此时窗口不可调整大小
@@ -1619,9 +1623,9 @@ class Little_tool(QWidget):
                     color_buf.append((imgpal_len >> 8) & 0xFF)
 
                     for pal_index in range(imgpal_len):
-                        r = img_pal[pal_index + 0] >> 3
-                        g = img_pal[pal_index + 1] >> 2
-                        b = img_pal[pal_index + 2] >> 3
+                        r = img_pal[pal_index * 3 + 0] >> 3
+                        g = img_pal[pal_index * 3 + 1] >> 2
+                        b = img_pal[pal_index * 3 + 2] >> 3
                         table = (r << 0) | (g << 5) | (b << 11)
                         color_buf.append((table >> 8) & 0xFF)
                         color_buf.append((table >> 0) & 0xFF)
@@ -1829,9 +1833,9 @@ class Little_tool(QWidget):
                         last_pos = pos
                         pic_buf = "\r\n\t"
                         picture_data.append(pic_buf)
-                    r = img_pal[pal_index + 0] >> 3
-                    g = img_pal[pal_index + 1] >> 2
-                    b = img_pal[pal_index + 2] >> 3
+                    r = img_pal[pal_index*3 + 0] >> 3
+                    g = img_pal[pal_index*3 + 1] >> 2
+                    b = img_pal[pal_index*3 + 2] >> 3
                     table = (r << 0) | (g << 5) | (b << 11)
                     pic_buf = "0x%02X, 0x%02X, " % ((table >> 8) & 0xff, (table >> 0) & 0xff)
                     picture_data.append(pic_buf)
@@ -2076,9 +2080,9 @@ class Little_tool(QWidget):
                         last_pos = pos
                         pic_buf = "\r\n\t"
                         picture_data.append(pic_buf)
-                    r = img_pal[pal_index + 0] >> 3
-                    g = img_pal[pal_index + 1] >> 2
-                    b = img_pal[pal_index + 2] >> 3
+                    r = img_pal[pal_index * 3 + 0] >> 3
+                    g = img_pal[pal_index * 3 + 1] >> 2
+                    b = img_pal[pal_index * 3 + 2] >> 3
                     table = (r << 0) | (g << 5) | (b << 11)
                     pic_buf = "0x%02X, 0x%02X, " % ((table >> 8) & 0xff, (table >> 0) & 0xff)
                     picture_data.append(pic_buf)
