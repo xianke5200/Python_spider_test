@@ -1587,6 +1587,7 @@ class Little_tool(QWidget):
                                     continue
                                 color_buf.append(x)
                                 color_buf.append(y)
+                                color_buf.append(alpha)
                                 color_buf.append((color >> 8) & 0xFF)
                                 color_buf.append((color >> 0) & 0xFF)
                             elif self.tableWidget_pic_file.item(i, 0).text() == 'pAA':
@@ -1594,6 +1595,7 @@ class Little_tool(QWidget):
                                     continue
                                 color_buf.append(x)
                                 color_buf.append(y)
+                                color_buf.append(alpha)
                                 color_buf.append((color >> 8) & 0xFF)
                                 color_buf.append((color >> 0) & 0xFF)
                             else:
