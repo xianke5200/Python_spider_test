@@ -1,0 +1,1874 @@
+博客园Logo
+首页
+新闻
+博问
+专区
+闪存
+班级
+代码改变世界
+搜索
+注册
+登录
+ImProgrammer
+新随笔
+管理
+随笔 - 1333  文章 - 0  评论 - 0  阅读 - 308万
+JLINKARM.DLL < JLINKARM.PAS/H >
+复制代码
+unit jlinkarm;
+
+interface
+
+uses
+  SysUtils, Windows;
+
+(* 
+RegIndex    RegName
+
+0           R0
+1           R1   
+2           R2   
+3           R3   
+4           R4   
+5           R5   
+6           R6 
+7           R7 
+8           R8 
+9           R9 
+10          R10
+11          R11
+12          R12
+13          R13
+14          R14
+15          R15
+
+16          XPSR
+17          MSP
+18          PSP
+19          RAZ
+20          CFBP
+21          APSR
+22          EPSR
+23          IPSR
+24          PRIMASK
+25          BASEPRI
+26          FAULTMASK
+27          CONTROL 
+28          BASEPRI_MAX
+29          IAPSR
+30          EAPSR
+31          IEPSR
+
+32          FPSCR
+33          FPS0
+34          FPS1
+35          FPS2
+36          FPS3
+37          FPS4
+38          FPS5
+39          FPS6
+40          FPS7       
+41          FPS8      
+42          FPS9      
+43          FPS10      
+44          FPS11      
+45          FPS12      
+46          FPS13      
+47          FPS14  
+48          FPS15
+49          FPS16
+50          FPS17
+51          FPS18
+52          FPS19
+53          FPS20
+54          FPS21
+55          FPS22
+56          FPS23
+57          FPS24
+58          FPS25
+59          FPS26
+60          FPS27
+61          FPS28
+62          FPS29
+63          FPS30
+64          FPS31
+*)
+
+
+const CM3_Registers :  array[0..64] of string = 
+(
+  '         CM3_R0',
+  '         CM3_R1',
+  '         CM3_R2',
+  '         CM3_R3',
+  '         CM3_R4',
+  '         CM3_R5',
+  '         CM3_R6',
+  '         CM3_R7',
+  '         CM3_R8',
+  '         CM3_R9',
+  '        CM3_R10',
+  '        CM3_R11',
+  '        CM3_R12',
+  '        CM3_R13',
+  '        CM3_R14',
+  '        CM3_R15',
+  '       CM3_XPSR',
+  '        CM3_MSP',
+  '        CM3_PSP',
+  '        CM3_RAZ',
+  '       CM3_CFBP',
+  '       CM3_APSR',
+  '       CM3_EPSR',
+  '       CM3_IPSR',
+  '    CM3_PRIMASK',
+  '    CM3_BASEPRI',
+  '  CM3_FAULTMASK',
+  '    CM3_CONTROL',
+  'CM3_BASEPRI_MAX',
+  '      CM3_IAPSR',
+  '      CM3_EAPSR',
+  '      CM3_IEPSR',
+  '      CM3_FPSCR',
+  '       CM3_FPS0',
+  '       CM3_FPS1',
+  '       CM3_FPS2',
+  '       CM3_FPS3',
+  '       CM3_FPS4',
+  '       CM3_FPS5',
+  '       CM3_FPS6',
+  '       CM3_FPS7',
+  '       CM3_FPS8',
+  '       CM3_FPS9',
+  '      CM3_FPS10',
+  '      CM3_FPS11',
+  '      CM3_FPS12',
+  '      CM3_FPS13',
+  '      CM3_FPS14',
+  '      CM3_FPS15',
+  '      CM3_FPS16',
+  '      CM3_FPS17',
+  '      CM3_FPS18',
+  '      CM3_FPS19',
+  '      CM3_FPS20',
+  '      CM3_FPS21',
+  '      CM3_FPS22',
+  '      CM3_FPS23',
+  '      CM3_FPS24',
+  '      CM3_FPS25',
+  '      CM3_FPS26',
+  '      CM3_FPS27',
+  '      CM3_FPS28',
+  '      CM3_FPS29',
+  '      CM3_FPS30',
+  '      CM3_FPS31'
+);
+
+const            CM3_R0  = $00;
+const            CM3_R1  = $01;
+const            CM3_R2  = $02;
+const            CM3_R3  = $03;
+const            CM3_R4  = $04;
+const            CM3_R5  = $05;
+const            CM3_R6  = $06;
+const            CM3_R7  = $07;
+const            CM3_R8  = $08;
+const            CM3_R9  = $09;
+const           CM3_R10  = $0A;
+const           CM3_R11  = $0B;
+const           CM3_R12  = $0C;
+const           CM3_R13  = $0D;
+const           CM3_R14  = $0E;
+const           CM3_R15  = $0F;
+const          CM3_XPSR  = $10;
+const           CM3_MSP  = $11;
+const           CM3_PSP  = $12;
+const           CM3_RAZ  = $13;
+const          CM3_CFBP  = $14;
+const          CM3_APSR  = $15;
+const          CM3_EPSR  = $16;
+const          CM3_IPSR  = $17;
+const       CM3_PRIMASK  = $18;
+const       CM3_BASEPRI  = $19;
+const     CM3_FAULTMASK  = $1A;
+const       CM3_CONTROL  = $1B;
+const   CM3_BASEPRI_MAX  = $1C;
+const         CM3_IAPSR  = $1D;
+const         CM3_EAPSR  = $1E;
+const         CM3_IEPSR  = $1F;
+const         CM3_FPSCR  = $20;
+const          CM3_FPS0  = $21;
+const          CM3_FPS1  = $22;
+const          CM3_FPS2  = $23;
+const          CM3_FPS3  = $24;
+const          CM3_FPS4  = $25;
+const          CM3_FPS5  = $26;
+const          CM3_FPS6  = $27;
+const          CM3_FPS7  = $28;
+const          CM3_FPS8  = $29;
+const          CM3_FPS9  = $2A;
+const         CM3_FPS10  = $2B;
+const         CM3_FPS11  = $2C;
+const         CM3_FPS12  = $2D;
+const         CM3_FPS13  = $2E;
+const         CM3_FPS14  = $2F;
+const         CM3_FPS15  = $30;
+const         CM3_FPS16  = $31;
+const         CM3_FPS17  = $32;
+const         CM3_FPS18  = $33;
+const         CM3_FPS19  = $34;
+const         CM3_FPS20  = $35;
+const         CM3_FPS21  = $36;
+const         CM3_FPS22  = $37;
+const         CM3_FPS23  = $38;
+const         CM3_FPS24  = $39;
+const         CM3_FPS25  = $3A;
+const         CM3_FPS26  = $3B;
+const         CM3_FPS27  = $3C;
+const         CM3_FPS28  = $3D;
+const         CM3_FPS29  = $3E;
+const         CM3_FPS30  = $3F;
+const         CM3_FPS31  = $40;
+
+
+function JLINKARM_IsConnected() : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_IsConnected';
+
+function JLINKARM_Open() : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_Open';
+function JLINKARM_IsOpen() : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_IsOpen';
+function JLINKARM_Close() : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_Close';
+
+function JLINKARM_Test() : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_Test';
+
+function JLINKARM_Go() : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_Go';
+function JLINKARM_GoEx(param1 : integer; param2 : integer) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_GoEx';
+function JLINKARM_GoHalt() : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_GoHalt';
+
+function JLINKARM_Halt() : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_Halt';
+function JLINKARM_IsHalted() : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_IsHalted';
+
+
+function JLINKARM_SetResetType(ResetType : DWORD) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_SetResetType';
+function JLINKARM_SetResetDelay(ResetDelay : DWORD) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_SetResetDelay';
+function JLINKARM_Reset() : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_Reset';
+
+function JLINKARM_ResetNoHalt() : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_ResetNoHalt';
+
+// JLINKARM_ResetNoHalt
+// JLINKARM_Reset then JLINKARM_Go
+
+function JLINKARM_TIF_Select(is_swd_intf : DWORD) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_TIF_Select';
+function JLINKARM_TIF_GetAvailable(param : DWORD) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_TIF_GetAvailable';
+
+
+function JLINKARM_SetSpeed(jlink_speed : DWORD) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_SetSpeed';
+function JLINKARM_SetMaxSpeed() : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_SetMaxSpeed';
+function JLINKARM_GetSpeed() : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_GetSpeed';
+
+function JLINKARM_ReadMem(memaddr : DWORD; size : DWORD; var buff : array of BYTE) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_ReadMem';
+function JLINKARM_ReadMemU8(memaddr : DWORD; size : DWORD; var buff : array of BYTE; flag : DWORD) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_ReadMemU8';
+function JLINKARM_ReadMemU16(memaddr : DWORD; size : DWORD; var buff : array of WORD; flag : DWORD) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_ReadMemU16';
+function JLINKARM_ReadMemU32(memaddr : DWORD; size : DWORD; var buff : array of DWORD; flag : DWORD) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_ReadMemU32';
+
+function JLINKARM_WriteMem(memaddr : DWORD; size : DWORD; buff : array of BYTE) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_WriteMem';
+
+function JLINKARM_WriteU8(memaddr : DWORD; data : BYTE) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_WriteU8';
+function JLINKARM_WriteU16(memaddr : DWORD; data : WORD) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_WriteU16';
+function JLINKARM_WriteU32(memaddr : DWORD; data : DWORD) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_WriteU32';
+function JLINKARM_WriteU64(memaddr : DWORD; data : INT64) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_WriteU64';
+
+function JLINKARM_ReadReg(RegIndex : DWORD) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_ReadReg';
+function JLINKARM_WriteReg(RegIndex : DWORD; RegValue : DWORD) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_WriteReg';
+
+
+function JLINKARM_ExecCommand(pbCommand : pchar; param1 : integer; param2 : integer) : integer;
+  cdecl; external 'jlinkarm.dll' name 'JLINKARM_ExecCommand';
+
+implementation
+
+end.
+复制代码
+ 
+
+复制代码
+ 1 procedure TfrmMain.btnReadCM3RegsClick(Sender: TObject);
+ 2 var
+ 3   I : DWORD;
+ 4   RegValue : DWORD;
+ 5 begin
+ 6   JLINKARM_Open();
+ 7   JLINKARM_TIF_Select( 1 );
+ 8   JLINKARM_SetSpeed( 1000 );
+ 9   JLINKARM_Reset();
+10   JLINKARM_Halt();
+11 
+12   for i := 0 to 64 do
+13   begin
+14     RegValue := JLINKARM_ReadReg(i);
+15     Memo1.Lines.Add( IntToHex(i, 4) + '  ' + CM3_Registers[i] + ' : 0x' + IntToHex(RegValue, 8) );
+16 
+17   end;
+18   JLINKARM_Close();
+19 end;
+复制代码
+复制代码
+ 1 procedure TfrmMain.btnLoadAndRunClick(Sender: TObject);
+ 2 var
+ 3   i : integer;
+ 4   size : integer;
+ 5   application : array[0..32767] of byte;
+ 6   msp : integer;
+ 7   pc : integer;
+ 8 begin
+ 9   size := hex.DataSize;
+10   if size > 32768 then 
+11     exit;
+12   for i:=0 to size-1 do
+13     application[i] := hex.Data[i];
+14 
+15   msp := application[0] + application[1] * 256 + application[2] * 256 * 256 +
+16     application[3] * 256 * 256 *256;
+17   pc := application[4] + application[5] * 256 + application[6] * 256 * 256 +
+18     application[7] * 256 * 256 *256;
+19 
+20 
+21   JLINKARM_Open();
+22   JLINKARM_TIF_Select( 1 );
+23   JLINKARM_SetSpeed( 1000 );
+24   JLINKARM_Reset();
+25   JLINKARM_Halt();
+26 
+27   JLINKARM_WriteMem($20000000, size, application );
+28 
+29   JLINKARM_Reset();
+30   JLINKARM_WriteReg( CM3_R15, pc );
+31   JLINKARM_WriteReg( CM3_MSP, msp );
+32   JLINKARM_WriteU32( $E000EDFC, $10000000 ); //  DEM_CR 
+33 
+34   JLINKARM_Go();
+35   JLINKARM_Close();
+36 
+37 end;
+复制代码
+ 
+
+复制代码
+  1 #ifdef __cplusplus
+  2 extern "C"
+  3 {
+  4 #endif
+  5 long __declspec(dllimport) JLINKARM_AddMirrorArea(long param);
+  6 long __declspec(dllimport) JLINKARM_BeginDownload(long param);
+  7 long __declspec(dllimport) JLINKARM_CORE_GetFound();
+  8 long __declspec(dllimport) JLINKARM_CORE_Select();
+  9 long __declspec(dllimport) JLINKARM_CP15_IsPresent();
+ 10 long __declspec(dllimport) JLINKARM_CP15_ReadEx(long param1, long param2, long param3, long param4);
+ 11 long __declspec(dllimport) JLINKARM_CP15_ReadReg(long param1, long param2);
+ 12 long __declspec(dllimport) JLINKARM_CP15_WriteEx(long param1, long param2, long param3, long param4);
+ 13 long __declspec(dllimport) JLINKARM_CP15_WriteReg(long param1, long param2);
+ 14 long __declspec(dllimport) JLINKARM_Clock();
+ 15 long __declspec(dllimport) JLINKARM_Close();
+ 16 long __declspec(dllimport) JLINKARM_ClrBP(long param);
+ 17 long __declspec(dllimport) JLINKARM_ClrBPEx(long param);
+ 18 long __declspec(dllimport) JLINKARM_ClrError();
+ 19 long __declspec(dllimport) JLINKARM_ClrRESET();
+ 20 long __declspec(dllimport) JLINKARM_ClrTDI();
+ 21 long __declspec(dllimport) JLINKARM_ClrTMS();
+ 22 long __declspec(dllimport) JLINKARM_ClrTRST();
+ 23 long __declspec(dllimport) JLINKARM_ClrWP(long param);
+ 24 long __declspec(dllimport) JLINKARM_Communicate(long param1, long param2, long param3, long param4);
+ 25 long __declspec(dllimport) JLINKARM_ConfigJTAG(long param1, long param2);
+ 26 long __declspec(dllimport) JLINKARM_DEVICE_GetInfo();
+ 27 long __declspec(dllimport) JLINKARM_DEVICE_GetSelected();
+ 28 long __declspec(dllimport) JLINKARM_DEVICE_Select();
+ 29 long __declspec(dllimport) JLINKARM_DownloadECode(long param1, long param2);
+ 30 long __declspec(dllimport) JLINKARM_EMU_FILE_Delete(long param);
+ 31 long __declspec(dllimport) JLINKARM_EMU_FILE_GetSize(long param);
+ 32 long __declspec(dllimport) JLINKARM_EMU_FILE_Read(long param1, long param2, long param3, long param4);
+ 33 long __declspec(dllimport) JLINKARM_EMU_FILE_Write(long param1, long param2, long param3, long param4);
+ 34 long __declspec(dllimport) JLINKARM_EMU_GetDeviceInfo(long param1, long param2);
+ 35 long __declspec(dllimport) JLINKARM_EMU_GetMaxMemBlock();
+ 36 long __declspec(dllimport) JLINKARM_EMU_GetNumDevices();
+ 37 long __declspec(dllimport) JLINKARM_EMU_IsConnected();
+ 38 long __declspec(dllimport) JLINKARM_EMU_SelectByIndex(long param);
+ 39 long __declspec(dllimport) JLINKARM_EMU_SelectByUSBSN(long param);
+ 40 long __declspec(dllimport) JLINKARM_ETB_IsPresent();
+ 41 long __declspec(dllimport) JLINKARM_ETB_ReadReg(long param);
+ 42 long __declspec(dllimport) JLINKARM_ETB_WriteReg(long param1, long param2, long param3);
+ 43 long __declspec(dllimport) JLINKARM_ETM_IsPresent();
+ 44 long __declspec(dllimport) JLINKARM_ETM_ReadReg(long param);
+ 45 long __declspec(dllimport) JLINKARM_ETM_StartTrace();
+ 46 long __declspec(dllimport) JLINKARM_ETM_WriteReg(long param1, long param2, long param3);
+ 47 long __declspec(dllimport) JLINKARM_EnableCheckModeAfterWrite(long param);
+ 48 long __declspec(dllimport) JLINKARM_EnableFlashCache(long param);
+ 49 long __declspec(dllimport) JLINKARM_EnableLog(void(*handle)(void*));
+ 50 long __declspec(dllimport) JLINKARM_EnableLogCom(long param);
+ 51 long __declspec(dllimport) JLINKARM_EnablePerformanceCnt(long param1, long param2);
+ 52 long __declspec(dllimport) JLINKARM_EnableSoftBPs(long param);
+ 53 long __declspec(dllimport) JLINKARM_EndDownload();
+ 54 long __declspec(dllimport) JLINKARM_ExecCommand(long param1, long param2, long param3);
+ 55 long __declspec(dllimport) JLINKARM_ExecECode();
+ 56 long __declspec(dllimport) JLINKARM_FindBP(long param);
+ 57 long __declspec(dllimport) JLINKARM_GetBPInfo(long param);
+ 58 long __declspec(dllimport) JLINKARM_GetBPInfoEx(long param1, long param2);
+ 59 long __declspec(dllimport) JLINKARM_GetCompileDateTime();
+ 60 long __declspec(dllimport) JLINKARM_GetConfigData(long param1, long param2);
+ 61 long __declspec(dllimport) JLINKARM_GetDLLVersion();
+ 62 long __declspec(dllimport) JLINKARM_GetDeviceFamily();
+ 63 long __declspec(dllimport) JLINKARM_GetDeviceId(long param);
+ 64 long __declspec(dllimport) JLINKARM_GetEmbeddedFWVersion();
+ 65 long __declspec(dllimport) JLINKARM_GetEmuCaps();
+ 66 long __declspec(dllimport) JLINKARM_GetFeatureString(long param);
+ 67 long __declspec(dllimport) JLINKARM_GetFirmwareString(long param1, long param2);
+ 68 long __declspec(dllimport) JLINKARM_GetHWInfo(long param1, long param2);
+ 69 long __declspec(dllimport) JLINKARM_GetHWStatus(long param);
+ 70 long __declspec(dllimport) JLINKARM_GetHardwareVersion();
+ 71 long __declspec(dllimport) JLINKARM_GetIRLen();
+ 72 long __declspec(dllimport) JLINKARM_GetId();
+ 73 long __declspec(dllimport) JLINKARM_GetIdData(long param);
+ 74 long __declspec(dllimport) JLINKARM_GetNumBPUnits(long param);
+ 75 long __declspec(dllimport) JLINKARM_GetNumBPs();
+ 76 long __declspec(dllimport) JLINKARM_GetNumWPs();
+ 77 long __declspec(dllimport) JLINKARM_GetOEMString(long param);
+ 78 long __declspec(dllimport) JLINKARM_GetPerformanceCnt(long param);
+ 79 long __declspec(dllimport) JLINKARM_GetRegisterName(long param);
+ 80 long __declspec(dllimport) JLINKARM_GetResetTypeDesc(long param1, long param2, long param3);
+ 81 long __declspec(dllimport) JLINKARM_GetSN();
+ 82 long __declspec(dllimport) JLINKARM_GetScanLen();
+ 83 long __declspec(dllimport) JLINKARM_GetSelDevice();
+ 84 long __declspec(dllimport) JLINKARM_GetSpeed();
+ 85 long __declspec(dllimport) JLINKARM_GetSpeedInfo(long param);
+ 86 long __declspec(dllimport) JLINKARM_GetU32(long param);
+ 87 long __declspec(dllimport) JLINKARM_GetWPInfoEx(long param1, long param2);
+ 88 long __declspec(dllimport) JLINKARM_GetpSharedMem();
+ 89 long __declspec(dllimport) JLINKARM_Go();
+ 90 long __declspec(dllimport) JLINKARM_GoAllowSim(long param);
+ 91 long __declspec(dllimport) JLINKARM_GoEx(long param1, long param2);
+ 92 long __declspec(dllimport) JLINKARM_GoHalt(long param);
+ 93 long __declspec(dllimport) JLINKARM_GoIntDis();
+ 94 long __declspec(dllimport) JLINKARM_Halt();
+ 95 long __declspec(dllimport) JLINKARM_HasError();
+ 96 long __declspec(dllimport) JLINKARM_INDICATORS_SetState(long param1, long param2);
+ 97 long __declspec(dllimport) JLINKARM_IsConnected();
+ 98 long __declspec(dllimport) JLINKARM_IsHalted();
+ 99 long __declspec(dllimport) JLINKARM_IsOpen();
+100 long __declspec(dllimport) JLINKARM_JTAG_ConfigDevices(long param1, long param2);
+101 long __declspec(dllimport) JLINKARM_JTAG_GetData(long param1, long param2, long param3);
+102 long __declspec(dllimport) JLINKARM_JTAG_GetDeviceId(long param);
+103 long __declspec(dllimport) JLINKARM_JTAG_GetU16(long param);
+104 long __declspec(dllimport) JLINKARM_JTAG_GetU32(long param);
+105 long __declspec(dllimport) JLINKARM_JTAG_GetU8(long param);
+106 long __declspec(dllimport) JLINKARM_JTAG_StoreData(long param1, long param2);
+107 long __declspec(dllimport) JLINKARM_JTAG_StoreGetData(long param1, long param2, long param3);
+108 long __declspec(dllimport) JLINKARM_JTAG_StoreGetRaw(long param1, long param2, long param3, long param4);
+109 long __declspec(dllimport) JLINKARM_JTAG_StoreInst(long param1, long param2);
+110 long __declspec(dllimport) JLINKARM_JTAG_StoreRaw(long param1, long param2, long param3);
+111 long __declspec(dllimport) JLINKARM_JTAG_SyncBits();
+112 long __declspec(dllimport) JLINKARM_JTAG_SyncBytes();
+113 long __declspec(dllimport) JLINKARM_JTAG_WriteData(long param1, long param2);
+114 long __declspec(dllimport) JLINKARM_Lock();
+115 long __declspec(dllimport) JLINKARM_MeasureCPUSpeed(long param1, long param2);
+116 long __declspec(dllimport) JLINKARM_MeasureRTCKReactTime(long param);
+117 long __declspec(dllimport) JLINKARM_MeasureSCLen(long param);
+118 long __declspec(dllimport) JLINKARM_Open();
+119 long __declspec(dllimport) JLINKARM_OpenEx(long param1, long param2);
+120 long __declspec(dllimport) JLINKARM_ReadCodeMem(long param1, long param2, long param3);
+121 long __declspec(dllimport) JLINKARM_ReadConfigReg(long param1, long param2);
+122 long __declspec(dllimport) JLINKARM_ReadControlReg(long param1, long param2);
+123 long __declspec(dllimport) JLINKARM_ReadDCC(long param1, long param2, long param3);
+124 long __declspec(dllimport) JLINKARM_ReadDCCFast(long param1, long param2);
+125 long __declspec(dllimport) JLINKARM_ReadDebugReg(long param1, long param2);
+126 long __declspec(dllimport) JLINKARM_ReadEmu(long param1, long param2);
+127 long __declspec(dllimport) JLINKARM_ReadEmuConfigMem(long param1, long param2, long param3);
+128 long __declspec(dllimport) JLINKARM_ReadICEReg(long param1, long param2);
+129 long __declspec(dllimport) JLINKARM_ReadMem(long param1, long param2, long param3);
+130 long __declspec(dllimport) JLINKARM_ReadMemEx(long param1, long param2, long param3, long param4);
+131 long __declspec(dllimport) JLINKARM_ReadMemHW(long param1, long param2, long param3);
+132 long __declspec(dllimport) JLINKARM_ReadMemIndirect(long param1, long param2, long param3);
+133 long __declspec(dllimport) JLINKARM_ReadMemU16(long memaddr, int size, short* buff, int flag);
+134 long __declspec(dllimport) JLINKARM_ReadMemU32(long memaddr, int size, long* buff, int flag);
+135 long __declspec(dllimport) JLINKARM_ReadMemU8(long memaddr, int size, char* buff, int flag);
+136 long __declspec(dllimport) JLINKARM_ReadReg(long param);
+137 long __declspec(dllimport) JLINKARM_Reset();
+138 long __declspec(dllimport) JLINKARM_ResetNoHalt();
+139 long __declspec(dllimport) JLINKARM_ResetPullsRESET(long param);
+140 long __declspec(dllimport) JLINKARM_ResetPullsTRST();
+141 long __declspec(dllimport) JLINKARM_ResetTRST();
+142 long __declspec(dllimport) JLINKARM_SWO_Control();
+143 long __declspec(dllimport) JLINKARM_SWO_Read();
+144 long __declspec(dllimport) JLINKARM_SelDevice(long param);
+145 long __declspec(dllimport) JLINKARM_SelectDeviceFamily(long param);
+146 long __declspec(dllimport) JLINKARM_SelectIP(long param1, long param2);
+147 long __declspec(dllimport) JLINKARM_SelectUSB(long);
+148 long __declspec(dllimport) JLINKARM_SetBP(long param1, long param2);
+149 long __declspec(dllimport) JLINKARM_SetBPEx(long param1, long param2);
+150 long __declspec(dllimport) JLINKARM_SetEndian(long);
+151 long __declspec(dllimport) JLINKARM_SetErrorOutHandler(void(*handle)(void*));
+152 long __declspec(dllimport) JLINKARM_SetFlashArea(long param1, long param2, long param3);
+153 long __declspec(dllimport) JLINKARM_SetInitRegsOnReset(long);
+154 long __declspec(dllimport) JLINKARM_SetLogFile(char* filename);
+155 long __declspec(dllimport) JLINKARM_SetMaxSpeed();
+156 long __declspec(dllimport) JLINKARM_SetRESET();
+157 long __declspec(dllimport) JLINKARM_SetResetDelay(long);
+158 long __declspec(dllimport) JLINKARM_SetResetPara(long);
+159 long __declspec(dllimport) JLINKARM_SetResetType(long);
+160 long __declspec(dllimport) JLINKARM_SetSpeed(long speed);    //0-8000(kHz)
+161 long __declspec(dllimport) JLINKARM_SetTDI();
+162 long __declspec(dllimport) JLINKARM_SetTMS();
+163 long __declspec(dllimport) JLINKARM_SetTRST();
+164 long __declspec(dllimport) JLINKARM_SetWP(long param1, long param2, long param3, long param4, long param5);
+165 long __declspec(dllimport) JLINKARM_SetWarnOutHandler(void(*handle)(void*));
+166 long __declspec(dllimport) JLINKARM_SimulateInstruction(long param);
+167 long __declspec(dllimport) JLINKARM_Step();
+168 long __declspec(dllimport) JLINKARM_StepComposite();
+169 long __declspec(dllimport) JLINKARM_StoreBits(long param1, long param2, long param3);
+170 long __declspec(dllimport) JLINKARM_StoreCmd(long param1);
+171 long __declspec(dllimport) JLINKARM_StoreData(long param1, long param2);
+172 long __declspec(dllimport) JLINKARM_TIF_GetAvailable(long param1);
+173 long __declspec(dllimport) JLINKARM_TIF_Select(long param1);
+174 long __declspec(dllimport) JLINKARM_TRACE_AddInst(long param1, long param2);
+175 long __declspec(dllimport) JLINKARM_TRACE_AddItems(long param1, long param2);
+176 long __declspec(dllimport) JLINKARM_TRACE_Control(long param1, long param2);
+177 long __declspec(dllimport) JLINKARM_TRACE_Read(long param1, long param2, long param3);
+178 long __declspec(dllimport) JLINKARM_Test();
+179 long __declspec(dllimport) JLINKARM_Unlock();
+180 long __declspec(dllimport) JLINKARM_UpdateFirmware();
+181 long __declspec(dllimport) JLINKARM_UpdateFirmwareIfNewer();
+182 long __declspec(dllimport) JLINKARM_WA_AddRange(long param1, long param2);
+183 long __declspec(dllimport) JLINKARM_WA_Restore();
+184 long __declspec(dllimport) JLINKARM_WaitDCCRead(long param);
+185 long __declspec(dllimport) JLINKARM_WriteBits();
+186 long __declspec(dllimport) JLINKARM_WriteConfigReg(long param1, long param2);
+187 long __declspec(dllimport) JLINKARM_WriteControlReg(long param1, long param2);
+188 long __declspec(dllimport) JLINKARM_WriteDCC(long param1, long param2, long param3);
+189 long __declspec(dllimport) JLINKARM_WriteDCCFast(long param1, long param2);
+190 long __declspec(dllimport) JLINKARM_WriteDebugReg(long param1, long param2);
+191 long __declspec(dllimport) JLINKARM_WriteEmu(long param1, long param2);
+192 long __declspec(dllimport) JLINKARM_WriteEmuConfigMem(long param1, long param2, long param3);
+193 long __declspec(dllimport) JLINKARM_WriteICEReg(long param1, long param2, long param3);
+194 long __declspec(dllimport) JLINKARM_WriteMem(long param1, long param2, long param3);
+195 long __declspec(dllimport) JLINKARM_WriteMemDelayed(long param1, long param2, long param3);
+196 long __declspec(dllimport) JLINKARM_WriteMemEx(long param1, long param2, long param3, long param4);
+197 long __declspec(dllimport) JLINKARM_WriteMemHW(long param1, long param2, long param3);
+198 long __declspec(dllimport) JLINKARM_WriteReg(long param1, long param2);
+199 long __declspec(dllimport) JLINKARM_WriteU16(long memaddr, short sh);
+200 long __declspec(dllimport) JLINKARM_WriteU32(long memaddr, long ln);
+201 long __declspec(dllimport) JLINKARM_WriteU8(long memaddr, char ch);
+202 long __declspec(dllimport) JLINKARM_WriteVectorCatch(long param);
+203 long __declspec(dllimport) JLINKARM_WriteVerifyMem(long param1, long param2, long param3, long param4);
+204 /*
+205 long __declspec(dllimport) JLINK_CP15_ReadReg();
+206 long __declspec(dllimport) JLINK_Clock();
+207 long __declspec(dllimport) JLINK_Close();
+208 long __declspec(dllimport) JLINK_ClrBP();
+209 long __declspec(dllimport) JLINK_ClrBPEx();
+210 long __declspec(dllimport) JLINK_ClrError();
+211 long __declspec(dllimport) JLINK_ClrRESET();
+212 long __declspec(dllimport) JLINK_ClrTDI();
+213 long __declspec(dllimport) JLINK_ClrTMS();
+214 long __declspec(dllimport) JLINK_ClrTRST
+215 long __declspec(dllimport) JLINK_ClrWP
+216 long __declspec(dllimport) JLINK_ConfigJTAG
+217 long __declspec(dllimport) JLINK_EMU_GetDeviceInfo
+218 long __declspec(dllimport) JLINK_EMU_GetNumDevices
+219 long __declspec(dllimport) JLINK_EMU_SelectByIndex
+220 long __declspec(dllimport) JLINK_EMU_SelectByUSBSN
+221 long __declspec(dllimport) JLINK_ETM_IsPresent
+222 long __declspec(dllimport) JLINK_ETM_ReadReg
+223 long __declspec(dllimport) JLINK_ETM_StartTrace
+224 long __declspec(dllimport) JLINK_ETM_WriteReg
+225 long __declspec(dllimport) JLINK_EnableCheckModeAfterWrite
+226 long __declspec(dllimport) JLINK_EnableFlashCache
+227 long __declspec(dllimport) JLINK_EnableLog
+228 long __declspec(dllimport) JLINK_EnableLogCom
+229 long __declspec(dllimport) JLINK_EnableSoftBPs
+230 long __declspec(dllimport) JLINK_ExecCommand
+231 long __declspec(dllimport) JLINK_FindBP
+232 long __declspec(dllimport) JLINK_GetBPInfoEx
+233 long __declspec(dllimport) JLINK_GetCompileDateTime
+234 long __declspec(dllimport) JLINK_GetConfigData
+235 long __declspec(dllimport) JLINK_GetDLLVersion
+236 long __declspec(dllimport) JLINK_GetEmuCaps
+237 long __declspec(dllimport) JLINK_GetFeatureString
+238 long __declspec(dllimport) JLINK_GetFirmwareString
+239 long __declspec(dllimport) JLINK_GetHWStatus
+240 long __declspec(dllimport) JLINK_GetHardwareVersion
+241 long __declspec(dllimport) JLINK_GetIRLen
+242 long __declspec(dllimport) JLINK_GetId
+243 long __declspec(dllimport) JLINK_GetIdData
+244 long __declspec(dllimport) JLINK_GetNumBPUnits
+245 long __declspec(dllimport) JLINK_GetNumBPs
+246 long __declspec(dllimport) JLINK_GetNumWPs
+247 long __declspec(dllimport) JLINK_GetOEMString
+248 long __declspec(dllimport) JLINK_GetRegisterName
+249 long __declspec(dllimport) JLINK_GetSN
+250 long __declspec(dllimport) JLINK_GetScanLen
+251 long __declspec(dllimport) JLINK_GetSelDevice
+252 long __declspec(dllimport) JLINK_GetSpeed
+253 long __declspec(dllimport) JLINK_GetU32
+254 long __declspec(dllimport) JLINK_Go
+255 long __declspec(dllimport) JLINK_GoAllowSim
+256 long __declspec(dllimport) JLINK_GoEx
+257 long __declspec(dllimport) JLINK_GoIntDis
+258 long __declspec(dllimport) JLINK_Halt
+259 long __declspec(dllimport) JLINK_HasError
+260 long __declspec(dllimport) JLINK_IsConnected
+261 long __declspec(dllimport) JLINK_IsHalted
+262 long __declspec(dllimport) JLINK_IsOpen
+263 long __declspec(dllimport) JLINK_JTAG_GetDeviceId
+264 long __declspec(dllimport) JLINK_JTAG_StoreData
+265 long __declspec(dllimport) JLINK_JTAG_StoreGetRaw
+266 long __declspec(dllimport) JLINK_JTAG_SyncBits
+267 long __declspec(dllimport) JLINK_JTAG_SyncBytes
+268 long __declspec(dllimport) JLINK_MeasureCPUSpeed
+269 long __declspec(dllimport) JLINK_MeasureSCLen
+270 long __declspec(dllimport) JLINK_Open
+271 long __declspec(dllimport) JLINK_OpenEx
+272 long __declspec(dllimport) JLINK_ReadCodeMem
+273 long __declspec(dllimport) JLINK_ReadConfigReg
+274 long __declspec(dllimport) JLINK_ReadControlReg
+275 long __declspec(dllimport) JLINK_ReadDCC
+276 long __declspec(dllimport) JLINK_ReadDCCFast
+277 long __declspec(dllimport) JLINK_ReadDebugReg
+278 long __declspec(dllimport) JLINK_ReadEmuConfigMem
+279 long __declspec(dllimport) JLINK_ReadICEReg
+280 long __declspec(dllimport) JLINK_ReadMem
+281 long __declspec(dllimport) JLINK_ReadMemEx
+282 long __declspec(dllimport) JLINK_ReadMemHW
+283 long __declspec(dllimport) JLINK_ReadMemIndirect
+284 long __declspec(dllimport) JLINK_ReadMemU16
+285 long __declspec(dllimport) JLINK_ReadMemU32
+286 long __declspec(dllimport) JLINK_ReadMemU8
+287 long __declspec(dllimport) JLINK_ReadReg
+288 long __declspec(dllimport) JLINK_Reset
+289 long __declspec(dllimport) JLINK_ResetNoHalt
+290 long __declspec(dllimport) JLINK_ResetPullsRESET
+291 long __declspec(dllimport) JLINK_ResetPullsTRST
+292 long __declspec(dllimport) JLINK_ResetTRST
+293 long __declspec(dllimport) JLINK_SelDevice
+294 long __declspec(dllimport) JLINK_SelectIP
+295 long __declspec(dllimport) JLINK_SelectUSB
+296 long __declspec(dllimport) JLINK_SetBP
+297 long __declspec(dllimport) JLINK_SetBPEx
+298 long __declspec(dllimport) JLINK_SetEndian
+299 long __declspec(dllimport) JLINK_SetErrorOutHandler
+300 long __declspec(dllimport) JLINK_SetFlashArea
+301 long __declspec(dllimport) JLINK_SetInitRegsOnReset
+302 long __declspec(dllimport) JLINK_SetLogFile
+303 long __declspec(dllimport) JLINK_SetMaxSpeed
+304 long __declspec(dllimport) JLINK_SetRESET
+305 long __declspec(dllimport) JLINK_SetResetDelay
+306 long __declspec(dllimport) JLINK_SetResetPara
+307 long __declspec(dllimport) JLINK_SetResetType
+308 long __declspec(dllimport) JLINK_SetSpeed
+309 long __declspec(dllimport) JLINK_SetTDI
+310 long __declspec(dllimport) JLINK_SetTMS
+311 long __declspec(dllimport) JLINK_SetTRST
+312 long __declspec(dllimport) JLINK_SetWP
+313 long __declspec(dllimport) JLINK_SetWarnOutHandler
+314 long __declspec(dllimport) JLINK_SimulateInstruction
+315 long __declspec(dllimport) JLINK_Step
+316 long __declspec(dllimport) JLINK_StepComposite
+317 long __declspec(dllimport) JLINK_StoreBits
+318 long __declspec(dllimport) JLINK_Test
+319 long __declspec(dllimport) JLINK_UpdateFirmware
+320 long __declspec(dllimport) JLINK_UpdateFirmwareIfNewer
+321 long __declspec(dllimport) JLINK_WaitDCCRead
+322 long __declspec(dllimport) JLINK_WriteConfigReg
+323 long __declspec(dllimport) JLINK_WriteControlReg
+324 long __declspec(dllimport) JLINK_WriteDCC
+325 long __declspec(dllimport) JLINK_WriteDCCFast
+326 long __declspec(dllimport) JLINK_WriteDebugReg
+327 long __declspec(dllimport) JLINK_WriteEmuConfigMem
+328 long __declspec(dllimport) JLINK_WriteICEReg
+329 long __declspec(dllimport) JLINK_WriteMem
+330 long __declspec(dllimport) JLINK_WriteMemDelayed
+331 long __declspec(dllimport) JLINK_WriteMemEx
+332 long __declspec(dllimport) JLINK_WriteReg
+333 long __declspec(dllimport) JLINK_WriteU16
+334 long __declspec(dllimport) JLINK_WriteU32
+335 long __declspec(dllimport) JLINK_WriteU8
+336 long __declspec(dllimport) JLINK_WriteVerifyMem
+337 long __declspec(dllimport) __stadcall JLINK_Communicate
+338 long __declspec(dllimport) __stadcall JLINK_JTAG_ConfigDevices
+339 long __declspec(dllimport) __stadcall JLINK_JTAG_GetData
+340 long __declspec(dllimport) __stadcall JLINK_JTAG_GetU16
+341 long __declspec(dllimport) __stadcall JLINK_JTAG_GetU32
+342 long __declspec(dllimport) __stadcall JLINK_JTAG_GetU8
+343 long __declspec(dllimport) __stadcall JLINK_JTAG_StoreGetData
+344 long __declspec(dllimport) __stadcall JLINK_JTAG_StoreInst
+345 long __declspec(dllimport) __stadcall JLINK_JTAG_StoreRaw
+346 long __declspec(dllimport) __stadcall JLINK_JTAG_WriteData
+347 long __declspec(dllimport) __stadcall JLINK_SWD_GetData
+348 long __declspec(dllimport) __stadcall JLINK_SWD_GetU16
+349 long __declspec(dllimport) __stadcall JLINK_SWD_GetU32
+350 long __declspec(dllimport) __stadcall JLINK_SWD_GetU8
+351 long __declspec(dllimport) __stadcall JLINK_SWD_StoreGetRaw
+352 long __declspec(dllimport) __stadcall JLINK_SWD_StoreRaw
+353 long __declspec(dllimport) __stadcall JLINK_SWD_SyncBits
+354 long __declspec(dllimport) __stadcall JLINK_SWD_SyncBytes
+355 */
+356 #ifdef __cplusplus
+357 }
+358 #endif
+复制代码
+ 
+
+http://www.shouldiblockit.com/jlinkarm.dll-d62448391848a1fa526213202fb69305.aspx
+
+jlinkarm.dll V4.28c Export table
+
+复制代码
+  1 JLINKARM_AddMirrorArea
+  2 JLINKARM_AddMirrorAreaEx
+  3 JLINKARM_BeginDownload
+  4 JLINKARM_CORE_GetFound
+  5 JLINKARM_CORE_Select
+  6 JLINKARM_CP15_IsPresent
+  7 JLINKARM_CP15_ReadEx
+  8 JLINKARM_CP15_ReadReg
+  9 JLINKARM_CP15_WriteEx
+ 10 JLINKARM_CP15_WriteReg
+ 11 JLINKARM_Clock
+ 12 JLINKARM_Close
+ 13 JLINKARM_ClrBP
+ 14 JLINKARM_ClrBPEx
+ 15 JLINKARM_ClrDataEvent
+ 16 JLINKARM_ClrError
+ 17 JLINKARM_ClrExecTime
+ 18 JLINKARM_ClrRESET
+ 19 JLINKARM_ClrTCK
+ 20 JLINKARM_ClrTDI
+ 21 JLINKARM_ClrTMS
+ 22 JLINKARM_ClrTRST
+ 23 JLINKARM_ClrWP
+ 24 JLINKARM_Communicate
+ 25 JLINKARM_ConfigJTAG
+ 26 JLINKARM_DEVICE_GetInfo
+ 27 JLINKARM_DownloadECode
+ 28 JLINKARM_EMU_COM_IsSupported
+ 29 JLINKARM_EMU_COM_Read
+ 30 JLINKARM_EMU_COM_Write
+ 31 JLINKARM_EMU_FILE_Delete
+ 32 JLINKARM_EMU_FILE_GetSize
+ 33 JLINKARM_EMU_FILE_Read
+ 34 JLINKARM_EMU_FILE_Write
+ 35 JLINKARM_EMU_GetCounters
+ 36 JLINKARM_EMU_GetDeviceInfo
+ 37 JLINKARM_EMU_GetList
+ 38 JLINKARM_EMU_GetMaxMemBlock
+ 39 JLINKARM_EMU_GetNumDevices
+ 40 JLINKARM_EMU_GetProductId
+ 41 JLINKARM_EMU_GetProductName
+ 42 JLINKARM_EMU_HasCPUCap
+ 43 JLINKARM_EMU_HasCapEx
+ 44 JLINKARM_EMU_IsConnected
+ 45 JLINKARM_EMU_SelectByIndex
+ 46 JLINKARM_EMU_SelectByUSBSN
+ 47 JLINKARM_EMU_SelectIP
+ 48 JLINKARM_EMU_SelectIPBySN
+ 49 JLINKARM_EMU_TestNRSpeed
+ 50 JLINKARM_EMU_TestNWSpeed
+ 51 JLINKARM_ETB_IsPresent
+ 52 JLINKARM_ETB_ReadReg
+ 53 JLINKARM_ETB_WriteReg
+ 54 JLINKARM_ETM_IsPresent
+ 55 JLINKARM_ETM_ReadReg
+ 56 JLINKARM_ETM_StartTrace
+ 57 JLINKARM_ETM_WriteReg
+ 58 JLINKARM_EnableCheckModeAfterWrite
+ 59 JLINKARM_EnableFlashCache
+ 60 JLINKARM_EnableLog
+ 61 JLINKARM_EnableLogCom
+ 62 JLINKARM_EnablePerformanceCnt
+ 63 JLINKARM_EnableSoftBPs
+ 64 JLINKARM_EndDownload
+ 65 JLINKARM_ExecCommand
+ 66 JLINKARM_ExecECode
+ 67 JLINKARM_FLASH_AddBank
+ 68 JLINKARM_FLASH_CloseDataFile
+ 69 JLINKARM_FLASH_DelBank
+ 70 JLINKARM_FLASH_EraseChip
+ 71 JLINKARM_FLASH_EraseRequired
+ 72 JLINKARM_FLASH_GetDeviceName
+ 73 JLINKARM_FLASH_GetNumLoadedBytes
+ 74 JLINKARM_FLASH_OpenBinFile
+ 75 JLINKARM_FLASH_OpenDataFile
+ 76 JLINKARM_FLASH_Program
+ 77 JLINKARM_FLASH_SetBankPara
+ 78 JLINKARM_FLASH_SetClockSpeed
+ 79 JLINKARM_FLASH_SetNotifyHandler
+ 80 JLINKARM_FLASH_Verify
+ 81 JLINKARM_FLASH_VerifyCRC
+ 82 JLINKARM_FindBP
+ 83 JLINKARM_GetBPInfo
+ 84 JLINKARM_GetBPInfoEx
+ 85 JLINKARM_GetCompileDateTime
+ 86 JLINKARM_GetConfigData
+ 87 JLINKARM_GetDLLVersion
+ 88 JLINKARM_GetDebugInfo
+ 89 JLINKARM_GetDeviceFamily
+ 90 JLINKARM_GetDeviceId
+ 91 JLINKARM_GetEmbeddedFWVersion
+ 92 JLINKARM_GetEmuCaps
+ 93 JLINKARM_GetEmuCapsEx
+ 94 JLINKARM_GetExecTime
+ 95 JLINKARM_GetFeatureString
+ 96 JLINKARM_GetFirmwareString
+ 97 JLINKARM_GetHWInfo
+ 98 JLINKARM_GetHWStatus
+ 99 JLINKARM_GetHardwareVersion
+100 JLINKARM_GetIRLen
+101 JLINKARM_GetId
+102 JLINKARM_GetIdData
+103 JLINKARM_GetMOEs
+104 JLINKARM_GetNumBPUnits
+105 JLINKARM_GetNumBPs
+106 JLINKARM_GetNumWPUnits
+107 JLINKARM_GetNumWPs
+108 JLINKARM_GetOEMString
+109 JLINKARM_GetPerformanceCnt
+110 JLINKARM_GetRegisterName
+111 JLINKARM_GetResetTypeDesc
+112 JLINKARM_GetSN
+113 JLINKARM_GetScanLen
+114 JLINKARM_GetSelDevice
+115 JLINKARM_GetSpeed
+116 JLINKARM_GetSpeedInfo
+117 JLINKARM_GetU32
+118 JLINKARM_GetWPInfoEx
+119 JLINKARM_GetpSharedMem
+120 JLINKARM_Go
+121 JLINKARM_GoAllowSim
+122 JLINKARM_GoEx
+123 JLINKARM_GoHalt
+124 JLINKARM_GoIntDis
+125 JLINKARM_Halt
+126 JLINKARM_HasError
+127 JLINKARM_INDICATORS_SetState
+128 JLINKARM_IsConnected
+129 JLINKARM_IsHalted
+130 JLINKARM_IsOpen
+131 JLINKARM_JTAG_ConfigDevices
+132 JLINKARM_JTAG_DisableIF
+133 JLINKARM_JTAG_EnableIF
+134 JLINKARM_JTAG_GetData
+135 JLINKARM_JTAG_GetDeviceId
+136 JLINKARM_JTAG_GetDeviceInfo
+137 JLINKARM_JTAG_GetU16
+138 JLINKARM_JTAG_GetU32
+139 JLINKARM_JTAG_GetU8
+140 JLINKARM_JTAG_StoreData
+141 JLINKARM_JTAG_StoreGetData
+142 JLINKARM_JTAG_StoreGetRaw
+143 JLINKARM_JTAG_StoreInst
+144 JLINKARM_JTAG_StoreRaw
+145 JLINKARM_JTAG_SyncBits
+146 JLINKARM_JTAG_SyncBytes
+147 JLINKARM_JTAG_WriteData
+148 JLINKARM_Lock
+149 JLINKARM_MeasureCPUSpeed
+150 JLINKARM_MeasureRTCKReactTime
+151 JLINKARM_MeasureSCLen
+152 JLINKARM_NET_Close
+153 JLINKARM_NET_Open
+154 JLINKARM_Open
+155 JLINKARM_OpenEx
+156 JLINKARM_PCODE_Exec
+157 JLINKARM_PCODE_GetCaps
+158 JLINKARM_PCODE_GetS32Version
+159 JLINKARM_RAWTRACE_Control
+160 JLINKARM_RAWTRACE_Read
+161 JLINKARM_ReadCodeMem
+162 JLINKARM_ReadConfigReg
+163 JLINKARM_ReadControlReg
+164 JLINKARM_ReadDCC
+165 JLINKARM_ReadDCCFast
+166 JLINKARM_ReadDebugPort
+167 JLINKARM_ReadDebugReg
+168 JLINKARM_ReadEmu
+169 JLINKARM_ReadEmuConfigMem
+170 JLINKARM_ReadICEReg
+171 JLINKARM_ReadMem
+172 JLINKARM_ReadMemEx
+173 JLINKARM_ReadMemHW
+174 JLINKARM_ReadMemIndirect
+175 JLINKARM_ReadMemU16
+176 JLINKARM_ReadMemU32
+177 JLINKARM_ReadMemU64
+178 JLINKARM_ReadMemU8
+179 JLINKARM_ReadReg
+180 JLINKARM_ReadRegs
+181 JLINKARM_ReadTerminal
+182 JLINKARM_Reset
+183 JLINKARM_ResetNoHalt
+184 JLINKARM_ResetPullsRESET
+185 JLINKARM_ResetPullsTRST
+186 JLINKARM_ResetTRST
+187 JLINKARM_SWD_DisableSWCLK
+188 JLINKARM_SWD_EnableSWCLK
+189 JLINKARM_SWD_SetDirIn
+190 JLINKARM_SWD_SetDirOut
+191 JLINKARM_SWO_Control
+192 JLINKARM_SWO_Read
+193 JLINKARM_SelDevice
+194 JLINKARM_SelectDeviceFamily
+195 JLINKARM_SelectIP
+196 JLINKARM_SelectUSB
+197 JLINKARM_SetBP
+198 JLINKARM_SetBPEx
+199 JLINKARM_SetDataEvent
+200 JLINKARM_SetDebugUnitBlockMask
+201 JLINKARM_SetEndian
+202 JLINKARM_SetErrorOutHandler
+203 JLINKARM_SetFlashArea
+204 JLINKARM_SetInitRegsOnReset
+205 JLINKARM_SetLogFile
+206 JLINKARM_SetMaxSpeed
+207 JLINKARM_SetRESET
+208 JLINKARM_SetResetDelay
+209 JLINKARM_SetResetPara
+210 JLINKARM_SetResetType
+211 JLINKARM_SetSpeed
+212 JLINKARM_SetTCK
+213 JLINKARM_SetTDI
+214 JLINKARM_SetTMS
+215 JLINKARM_SetTRST
+216 JLINKARM_SetWP
+217 JLINKARM_SetWaitFunction
+218 JLINKARM_SetWarnOutHandler
+219 JLINKARM_SimulateInstruction
+220 JLINKARM_Step
+221 JLINKARM_StepComposite
+222 JLINKARM_StoreBits
+223 JLINKARM_StoreCmd
+224 JLINKARM_StoreData
+225 JLINKARM_TIF_GetAvailable
+226 JLINKARM_TIF_Select
+227 JLINKARM_TRACE_AddInst
+228 JLINKARM_TRACE_AddItems
+229 JLINKARM_TRACE_Control
+230 JLINKARM_TRACE_Read
+231 JLINKARM_Test
+232 JLINKARM_Unlock
+233 JLINKARM_UpdateFirmware
+234 JLINKARM_UpdateFirmwareIfNewer
+235 JLINKARM_WA_AddRange
+236 JLINKARM_WA_Restore
+237 JLINKARM_WaitDCCRead
+238 JLINKARM_WaitForHalt
+239 JLINKARM_WriteBits
+240 JLINKARM_WriteConfigReg
+241 JLINKARM_WriteControlReg
+242 JLINKARM_WriteDCC
+243 JLINKARM_WriteDCCFast
+244 JLINKARM_WriteDebugPort
+245 JLINKARM_WriteDebugReg
+246 JLINKARM_WriteEmu
+247 JLINKARM_WriteEmuConfigMem
+248 JLINKARM_WriteICEReg
+249 JLINKARM_WriteMem
+250 JLINKARM_WriteMemDelayed
+251 JLINKARM_WriteMemEx
+252 JLINKARM_WriteMemHW
+253 JLINKARM_WriteReg
+254 JLINKARM_WriteRegs
+255 JLINKARM_WriteU16
+256 JLINKARM_WriteU32
+257 JLINKARM_WriteU64
+258 JLINKARM_WriteU8
+259 JLINKARM_WriteVectorCatch
+260 JLINKARM_WriteVerifyMem
+261 JLINK_CP15_ReadReg
+262 JLINK_Clock
+263 JLINK_Close
+264 JLINK_ClrBP
+265 JLINK_ClrBPEx
+266 JLINK_ClrError
+267 JLINK_ClrRESET
+268 JLINK_ClrTDI
+269 JLINK_ClrTMS
+270 JLINK_ClrTRST
+271 JLINK_ClrWP
+272 JLINK_ConfigJTAG
+273 JLINK_EMU_COM_IsSupported
+274 JLINK_EMU_COM_Read
+275 JLINK_EMU_COM_Write
+276 JLINK_EMU_FILE_Delete
+277 JLINK_EMU_FILE_GetSize
+278 JLINK_EMU_FILE_Read
+279 JLINK_EMU_FILE_Write
+280 JLINK_EMU_GetCounters
+281 JLINK_EMU_GetDeviceInfo
+282 JLINK_EMU_GetMaxMemBlock
+283 JLINK_EMU_GetNumDevices
+284 JLINK_EMU_GetProductName
+285 JLINK_EMU_HasCPUCap
+286 JLINK_EMU_HasCapEx
+287 JLINK_EMU_IsConnected
+288 JLINK_EMU_SelectByIndex
+289 JLINK_EMU_SelectByUSBSN
+290 JLINK_EMU_SelectIP
+291 JLINK_EMU_TestNRSpeed
+292 JLINK_EMU_TestNWSpeed
+293 JLINK_ETM_IsPresent
+294 JLINK_ETM_ReadReg
+295 JLINK_ETM_StartTrace
+296 JLINK_ETM_WriteReg
+297 JLINK_EnableCheckModeAfterWrite
+298 JLINK_EnableFlashCache
+299 JLINK_EnableLog
+300 JLINK_EnableLogCom
+301 JLINK_EnableSoftBPs
+302 JLINK_ExecCommand
+303 JLINK_FLASH_AddBank
+304 JLINK_FLASH_CloseDataFile
+305 JLINK_FLASH_DelBank
+306 JLINK_FLASH_EraseRequired
+307 JLINK_FLASH_GetDeviceName
+308 JLINK_FLASH_GetNumLoadedBytes
+309 JLINK_FLASH_OpenBinFile
+310 JLINK_FLASH_OpenDataFile
+311 JLINK_FLASH_Program
+312 JLINK_FLASH_SetBankPara
+313 JLINK_FLASH_SetClockSpeed
+314 JLINK_FLASH_Verify
+315 JLINK_FLASH_VerifyCRC
+316 JLINK_FindBP
+317 JLINK_GetBPInfoEx
+318 JLINK_GetCompileDateTime
+319 JLINK_GetConfigData
+320 JLINK_GetDLLVersion
+321 JLINK_GetEmuCaps
+322 JLINK_GetFeatureString
+323 JLINK_GetFirmwareString
+324 JLINK_GetHWStatus
+325 JLINK_GetHardwareVersion
+326 JLINK_GetIRLen
+327 JLINK_GetId
+328 JLINK_GetIdData
+329 JLINK_GetNumBPUnits
+330 JLINK_GetNumBPs
+331 JLINK_GetNumWPs
+332 JLINK_GetOEMString
+333 JLINK_GetRegisterName
+334 JLINK_GetSN
+335 JLINK_GetScanLen
+336 JLINK_GetSelDevice
+337 JLINK_GetSpeed
+338 JLINK_GetU32
+339 JLINK_Go
+340 JLINK_GoAllowSim
+341 JLINK_GoEx
+342 JLINK_GoIntDis
+343 JLINK_Halt
+344 JLINK_HasError
+345 JLINK_IsConnected
+346 JLINK_IsHalted
+347 JLINK_IsOpen
+348 JLINK_JTAG_GetDeviceId
+349 JLINK_JTAG_StoreData
+350 JLINK_JTAG_StoreGetRaw
+351 JLINK_JTAG_SyncBits
+352 JLINK_JTAG_SyncBytes
+353 JLINK_MeasureCPUSpeed
+354 JLINK_MeasureSCLen
+355 JLINK_Open
+356 JLINK_OpenEx
+357 JLINK_ReadCodeMem
+358 JLINK_ReadConfigReg
+359 JLINK_ReadControlReg
+360 JLINK_ReadDCC
+361 JLINK_ReadDCCFast
+362 JLINK_ReadDebugReg
+363 JLINK_ReadEmuConfigMem
+364 JLINK_ReadICEReg
+365 JLINK_ReadMem
+366 JLINK_ReadMemEx
+367 JLINK_ReadMemHW
+368 JLINK_ReadMemIndirect
+369 JLINK_ReadMemU16
+370 JLINK_ReadMemU32
+371 JLINK_ReadMemU8
+372 JLINK_ReadReg
+373 JLINK_Reset
+374 JLINK_ResetNoHalt
+375 JLINK_ResetPullsRESET
+376 JLINK_ResetPullsTRST
+377 JLINK_ResetTRST
+378 JLINK_SelDevice
+379 JLINK_SelectIP
+380 JLINK_SelectUSB
+381 JLINK_SetBP
+382 JLINK_SetBPEx
+383 JLINK_SetEndian
+384 JLINK_SetErrorOutHandler
+385 JLINK_SetFlashArea
+386 JLINK_SetInitRegsOnReset
+387 JLINK_SetLogFile
+388 JLINK_SetMaxSpeed
+389 JLINK_SetRESET
+390 JLINK_SetResetDelay
+391 JLINK_SetResetPara
+392 JLINK_SetResetType
+393 JLINK_SetSpeed
+394 JLINK_SetTDI
+395 JLINK_SetTMS
+396 JLINK_SetTRST
+397 JLINK_SetWP
+398 JLINK_SetWarnOutHandler
+399 JLINK_SimulateInstruction
+400 JLINK_Step
+401 JLINK_StepComposite
+402 JLINK_StoreBits
+403 JLINK_Test
+404 JLINK_UpdateFirmware
+405 JLINK_UpdateFirmwareIfNewer
+406 JLINK_WaitDCCRead
+407 JLINK_WriteConfigReg
+408 JLINK_WriteControlReg
+409 JLINK_WriteDCC
+410 JLINK_WriteDCCFast
+411 JLINK_WriteDebugReg
+412 JLINK_WriteEmuConfigMem
+413 JLINK_WriteICEReg
+414 JLINK_WriteMem
+415 JLINK_WriteMemDelayed
+416 JLINK_WriteMemEx
+417 JLINK_WriteReg
+418 JLINK_WriteU16
+419 JLINK_WriteU32
+420 JLINK_WriteU8
+421 JLINK_WriteVerifyMem
+422 _JLINK_Communicate@16
+423 _JLINK_EMU_GetProductId@0
+424 _JLINK_FLASH_EraseChip@0
+425 _JLINK_JTAG_ConfigDevices@8
+426 _JLINK_JTAG_GetData@12
+427 _JLINK_JTAG_GetU16@4
+428 _JLINK_JTAG_GetU32@4
+429 _JLINK_JTAG_GetU8@4
+430 _JLINK_JTAG_StoreGetData@12
+431 _JLINK_JTAG_StoreInst@8
+432 _JLINK_JTAG_StoreRaw@12
+433 _JLINK_JTAG_WriteData@12
+434 _JLINK_POWERTRACE_Control@12
+435 _JLINK_POWERTRACE_Read@8
+436 _JLINK_SWD_GetData@12
+437 _JLINK_SWD_GetU16@4
+438 _JLINK_SWD_GetU32@4
+439 _JLINK_SWD_GetU8@4
+440 _JLINK_SWD_StoreGetRaw@16
+441 _JLINK_SWD_StoreRaw@12
+442 _JLINK_SWD_SyncBits@0
+443 _JLINK_SWD_SyncBytes@0
+复制代码
+ 
+
+ 
+
+复制代码
+  1 JLINKARM.dll V4.90e, compiled Sep 8 2014 18:46:31
+  2 
+  3 JLINKARM_AddMirrorArea              
+  4 JLINKARM_AddMirrorAreaEx            
+  5 JLINKARM_BMI_Get                    
+  6 JLINKARM_BMI_Set                    
+  7 JLINKARM_BeginDownload              
+  8 JLINKARM_CDC_Read                   
+  9 JLINKARM_CDC_SetBaudrate            
+ 10 JLINKARM_CDC_SetHookFuncs           
+ 11 JLINKARM_CDC_SetRTSState            
+ 12 JLINKARM_CDC_SetTimeoutLastCDCRead  
+ 13 JLINKARM_CDC_Write                  
+ 14 JLINKARM_CORESIGHT_ReadAPDPReg      
+ 15 JLINKARM_CORESIGHT_WriteAPDPReg     
+ 16 JLINKARM_CORE_GetFound              
+ 17 JLINKARM_CORE_Select                
+ 18 JLINKARM_CP15_IsPresent             
+ 19 JLINKARM_CP15_ReadEx                
+ 20 JLINKARM_CP15_ReadReg               
+ 21 JLINKARM_CP15_WriteEx               
+ 22 JLINKARM_CP15_WriteReg              
+ 23 JLINKARM_Clock                      
+ 24 JLINKARM_Close                      
+ 25 JLINKARM_ClrBP                      
+ 26 JLINKARM_ClrBPEx                    
+ 27 JLINKARM_ClrDataEvent               
+ 28 JLINKARM_ClrError                   
+ 29 JLINKARM_ClrExecTime                
+ 30 JLINKARM_ClrRESET                   
+ 31 JLINKARM_ClrTCK                     
+ 32 JLINKARM_ClrTDI                     
+ 33 JLINKARM_ClrTMS                     
+ 34 JLINKARM_ClrTRST                    
+ 35 JLINKARM_ClrWP                      
+ 36 JLINKARM_Communicate                
+ 37 JLINKARM_CommunicateEx              
+ 38 JLINKARM_ConfigJTAG                 
+ 39 JLINKARM_Connect                    
+ 40 JLINKARM_Core2CoreName              
+ 41 JLINKARM_DEVICE_GetIndex            
+ 42 JLINKARM_DEVICE_GetInfo             
+ 43 JLINKARM_DEVICE_SelectDialog        
+ 44 JLINKARM_DisassembleInst            
+ 45 JLINKARM_DownloadECode              
+ 46 JLINKARM_EMU_COM_IsSupported        
+ 47 JLINKARM_EMU_COM_Read               
+ 48 JLINKARM_EMU_COM_Write              
+ 49 JLINKARM_EMU_FILE_Delete            
+ 50 JLINKARM_EMU_FILE_GetList           
+ 51 JLINKARM_EMU_FILE_GetSize           
+ 52 JLINKARM_EMU_FILE_Read              
+ 53 JLINKARM_EMU_FILE_Write             
+ 54 JLINKARM_EMU_GetCounters            
+ 55 JLINKARM_EMU_GetDeviceInfo          
+ 56 JLINKARM_EMU_GetList                
+ 57 JLINKARM_EMU_GetMaxMemBlock         
+ 58 JLINKARM_EMU_GetNumConnections      
+ 59 JLINKARM_EMU_GetNumDevices          
+ 60 JLINKARM_EMU_GetProductId           
+ 61 JLINKARM_EMU_GetProductName         
+ 62 JLINKARM_EMU_HasCPUCap              
+ 63 JLINKARM_EMU_HasCapEx               
+ 64 JLINKARM_EMU_IsConnected            
+ 65 JLINKARM_EMU_SelectByIndex          
+ 66 JLINKARM_EMU_SelectByUSBSN          
+ 67 JLINKARM_EMU_SelectIP               
+ 68 JLINKARM_EMU_SelectIPBySN           
+ 69 JLINKARM_EMU_TestNRSpeed            
+ 70 JLINKARM_EMU_TestNWSpeed            
+ 71 JLINKARM_ETB_IsPresent              
+ 72 JLINKARM_ETB_ReadReg                
+ 73 JLINKARM_ETB_WriteReg               
+ 74 JLINKARM_ETM_IsPresent              
+ 75 JLINKARM_ETM_ReadReg                
+ 76 JLINKARM_ETM_StartTrace             
+ 77 JLINKARM_ETM_WriteReg               
+ 78 JLINKARM_EnableCheckModeAfterWrite  
+ 79 JLINKARM_EnableFlashCache           
+ 80 JLINKARM_EnableLog                  
+ 81 JLINKARM_EnableLogCom               
+ 82 JLINKARM_EnablePerformanceCnt       
+ 83 JLINKARM_EnableSoftBPs              
+ 84 JLINKARM_EndDownload                
+ 85 JLINKARM_ExecCommand                
+ 86 JLINKARM_ExecECode                  
+ 87 JLINKARM_FindBP                     
+ 88 JLINKARM_FreeMem                    
+ 89 JLINKARM_GetBPInfo                  
+ 90 JLINKARM_GetBPInfoEx                
+ 91 JLINKARM_GetCompileDateTime         
+ 92 JLINKARM_GetConfigData              
+ 93 JLINKARM_GetDLLVersion              
+ 94 JLINKARM_GetDebugInfo               
+ 95 JLINKARM_GetDeviceFamily            
+ 96 JLINKARM_GetDeviceId                
+ 97 JLINKARM_GetEmbeddedFWString        
+ 98 JLINKARM_GetEmbeddedFWVersion       
+ 99 JLINKARM_GetEmuCaps                 
+100 JLINKARM_GetEmuCapsEx               
+101 JLINKARM_GetExecTime                
+102 JLINKARM_GetFeatureString           
+103 JLINKARM_GetFirmwareString          
+104 JLINKARM_GetHWInfo                  
+105 JLINKARM_GetHWStatus                
+106 JLINKARM_GetHardwareVersion         
+107 JLINKARM_GetIRLen                   
+108 JLINKARM_GetId                      
+109 JLINKARM_GetIdData                  
+110 JLINKARM_GetMOEs                    
+111 JLINKARM_GetNumBPUnits              
+112 JLINKARM_GetNumBPs                  
+113 JLINKARM_GetNumWPUnits              
+114 JLINKARM_GetNumWPs                  
+115 JLINKARM_GetOEMString               
+116 JLINKARM_GetPerformanceCnt          
+117 JLINKARM_GetRegisterList            
+118 JLINKARM_GetRegisterName            
+119 JLINKARM_GetResetTypeDesc           
+120 JLINKARM_GetSN                      
+121 JLINKARM_GetScanLen                 
+122 JLINKARM_GetSelDevice               
+123 JLINKARM_GetSpeed                   
+124 JLINKARM_GetSpeedInfo               
+125 JLINKARM_GetU32                     
+126 JLINKARM_GetWPInfoEx                
+127 JLINKARM_GetpSharedMem              
+128 JLINKARM_Go                         
+129 JLINKARM_GoAllowSim                 
+130 JLINKARM_GoEx                       
+131 JLINKARM_GoHalt                     
+132 JLINKARM_GoIntDis                   
+133 JLINKARM_Halt                       
+134 JLINKARM_HasError                   
+135 JLINKARM_INDICATORS_SetState        
+136 JLINKARM_IsConnected                
+137 JLINKARM_IsHalted                   
+138 JLINKARM_IsOpen                     
+139 JLINKARM_JTAG_ConfigDevices         
+140 JLINKARM_JTAG_DisableIF             
+141 JLINKARM_JTAG_EnableIF              
+142 JLINKARM_JTAG_GetData               
+143 JLINKARM_JTAG_GetDeviceId           
+144 JLINKARM_JTAG_GetDeviceInfo         
+145 JLINKARM_JTAG_GetU16                
+146 JLINKARM_JTAG_GetU32                
+147 JLINKARM_JTAG_GetU8                 
+148 JLINKARM_JTAG_StoreData             
+149 JLINKARM_JTAG_StoreGetData          
+150 JLINKARM_JTAG_StoreGetRaw           
+151 JLINKARM_JTAG_StoreInst             
+152 JLINKARM_JTAG_StoreRaw              
+153 JLINKARM_JTAG_SyncBits              
+154 JLINKARM_JTAG_SyncBytes             
+155 JLINKARM_JTAG_WriteData             
+156 JLINKARM_Lock                       
+157 JLINKARM_MeasureCPUSpeed            
+158 JLINKARM_MeasureCPUSpeedEx          
+159 JLINKARM_MeasureRTCKReactTime       
+160 JLINKARM_MeasureSCLen               
+161 JLINKARM_NET_Close                  
+162 JLINKARM_NET_Open                   
+163 JLINKARM_Open                       
+164 JLINKARM_OpenEx                     
+165 JLINKARM_PCODE_Assemble             
+166 JLINKARM_PCODE_Exec                 
+167 JLINKARM_PCODE_GetCaps              
+168 JLINKARM_PCODE_GetDebugAPI          
+169 JLINKARM_PCODE_GetS32Version        
+170 JLINKARM_PERIODIC_ConfReadMem       
+171 JLINKARM_PERIODIC_Control           
+172 JLINKARM_PERIODIC_Read              
+173 JLINKARM_RAWTRACE_Control           
+174 JLINKARM_RAWTRACE_Read              
+175 JLINKARM_ReadCodeMem                
+176 JLINKARM_ReadConfigReg              
+177 JLINKARM_ReadControlReg             
+178 JLINKARM_ReadDCC                    
+179 JLINKARM_ReadDCCFast                
+180 JLINKARM_ReadDebugPort              
+181 JLINKARM_ReadDebugReg               
+182 JLINKARM_ReadEmu                    
+183 JLINKARM_ReadEmuConfigMem           
+184 JLINKARM_ReadICEReg                 
+185 JLINKARM_ReadMem                    
+186 JLINKARM_ReadMemEx                  
+187 JLINKARM_ReadMemHW                  
+188 JLINKARM_ReadMemIndirect            
+189 JLINKARM_ReadMemU16                 
+190 JLINKARM_ReadMemU32                 
+191 JLINKARM_ReadMemU64                 
+192 JLINKARM_ReadMemU8                  
+193 JLINKARM_ReadReg                    
+194 JLINKARM_ReadRegs                   
+195 JLINKARM_ReadTerminal               
+196 JLINKARM_Reset                      
+197 JLINKARM_ResetNoHalt                
+198 JLINKARM_ResetPullsRESET            
+199 JLINKARM_ResetPullsTRST             
+200 JLINKARM_ResetTRST                  
+201 JLINKARM_SWD_DisableSWCLK           
+202 JLINKARM_SWD_EnableSWCLK            
+203 JLINKARM_SWD_SetDirIn               
+204 JLINKARM_SWD_SetDirOut              
+205 JLINKARM_SWO_Control                
+206 JLINKARM_SWO_DisableTarget          
+207 JLINKARM_SWO_EnableTarget           
+208 JLINKARM_SWO_GetCompatibleSpeeds    
+209 JLINKARM_SWO_Read                   
+210 JLINKARM_SWO_ReadStimulus           
+211 JLINKARM_SelDevice                  
+212 JLINKARM_SelectDeviceFamily         
+213 JLINKARM_SelectIP                   
+214 JLINKARM_SelectTraceSource          
+215 JLINKARM_SelectUSB                  
+216 JLINKARM_SetBP                      
+217 JLINKARM_SetBPEx                    
+218 JLINKARM_SetCoreIndex               
+219 JLINKARM_SetDataEvent               
+220 JLINKARM_SetDebugUnitBlockMask      
+221 JLINKARM_SetEndian                  
+222 JLINKARM_SetErrorOutHandler         
+223 JLINKARM_SetFlashArea               
+224 JLINKARM_SetInitRegsOnReset         
+225 JLINKARM_SetLogFile                 
+226 JLINKARM_SetMaxSpeed                
+227 JLINKARM_SetRESET                   
+228 JLINKARM_SetResetDelay              
+229 JLINKARM_SetResetPara               
+230 JLINKARM_SetResetType               
+231 JLINKARM_SetSpeed                   
+232 JLINKARM_SetTCK                     
+233 JLINKARM_SetTDI                     
+234 JLINKARM_SetTMS                     
+235 JLINKARM_SetTRST                    
+236 JLINKARM_SetWP                      
+237 JLINKARM_SetWaitFunction            
+238 JLINKARM_SetWarnOutHandler          
+239 JLINKARM_SimulateInstruction        
+240 JLINKARM_Step                       
+241 JLINKARM_StepComposite              
+242 JLINKARM_StoreBits                  
+243 JLINKARM_StoreCmd                   
+244 JLINKARM_StoreData                  
+245 JLINKARM_TIF_GetAvailable           
+246 JLINKARM_TIF_Select                 
+247 JLINKARM_TRACE_AddInst              
+248 JLINKARM_TRACE_AddItems             
+249 JLINKARM_TRACE_Control              
+250 JLINKARM_TRACE_Read                 
+251 JLINKARM_Test                       
+252 JLINKARM_Unlock                     
+253 JLINKARM_UpdateFirmware             
+254 JLINKARM_UpdateFirmwareIfNewer      
+255 JLINKARM_UpdateReplaceFirmware      
+256 JLINKARM_WA_AddRange                
+257 JLINKARM_WA_Restore                 
+258 JLINKARM_WaitDCCRead                
+259 JLINKARM_WaitForHalt                
+260 JLINKARM_WriteBits                  
+261 JLINKARM_WriteConfigReg             
+262 JLINKARM_WriteControlReg            
+263 JLINKARM_WriteDCC                   
+264 JLINKARM_WriteDCCFast               
+265 JLINKARM_WriteDebugPort             
+266 JLINKARM_WriteDebugReg              
+267 JLINKARM_WriteEmu                   
+268 JLINKARM_WriteEmuConfigMem          
+269 JLINKARM_WriteICEReg                
+270 JLINKARM_WriteMem                   
+271 JLINKARM_WriteMemDelayed            
+272 JLINKARM_WriteMemEx                 
+273 JLINKARM_WriteMemHW                 
+274 JLINKARM_WriteMemMultiple           
+275 JLINKARM_WriteReg                   
+276 JLINKARM_WriteRegs                  
+277 JLINKARM_WriteU16                   
+278 JLINKARM_WriteU32                   
+279 JLINKARM_WriteU64                   
+280 JLINKARM_WriteU8                    
+281 JLINKARM_WriteVectorCatch           
+282 JLINKARM_WriteVerifyMem             
+283 JLINK_AddMirrorArea                 
+284 JLINK_AddMirrorArea(x)              
+285 JLINK_AddMirrorAreaEx               
+286 JLINK_AddMirrorAreaEx(x,x)          
+287 JLINK_BeginDownload                 
+288 JLINK_BeginDownload(x)              
+289 JLINK_CORESIGHT_ReadAPDPReg         
+290 JLINK_CORESIGHT_WriteAPDPReg        
+291 JLINK_CORE_GetFound                 
+292 JLINK_CORE_GetFound()               
+293 JLINK_CORE_Select                   
+294 JLINK_CORE_Select(x)                
+295 JLINK_CP15_IsPresent                
+296 JLINK_CP15_IsPresent()              
+297 JLINK_CP15_ReadEx                   
+298 JLINK_CP15_ReadEx(x,x,x,x,x)        
+299 JLINK_CP15_ReadReg                  
+300 JLINK_CP15_WriteEx                  
+301 JLINK_CP15_WriteEx(x,x,x,x,x)       
+302 JLINK_CP15_WriteReg                 
+303 JLINK_CP15_WriteReg(x,x)            
+304 JLINK_Clock                         
+305 JLINK_Close                         
+306 JLINK_ClrBP                         
+307 JLINK_ClrBPEx                       
+308 JLINK_ClrDataEvent                  
+309 JLINK_ClrDataEvent(x)               
+310 JLINK_ClrError                      
+311 JLINK_ClrExecTime                   
+312 JLINK_ClrExecTime()                 
+313 JLINK_ClrRESET                      
+314 JLINK_ClrTCK                        
+315 JLINK_ClrTCK()                      
+316 JLINK_ClrTDI                        
+317 JLINK_ClrTMS                        
+318 JLINK_ClrTRST                       
+319 JLINK_ClrWP                         
+320 JLINK_Communicate                   
+321 JLINK_Communicate(x,x,x,x)          
+322 JLINK_ConfigJTAG                    
+323 JLINK_Configure                     
+324 JLINK_Connect                       
+325 JLINK_DEVICE_GetInfo                
+326 JLINK_DEVICE_GetInfo(x,x)           
+327 JLINK_DIALOG_Configure              
+328 JLINK_DIALOG_ConfigureEx            
+329 JLINK_DIALOG_ConfigureEx(x,x,x,x,x) 
+330 JLINK_DownloadECode                 
+331 JLINK_DownloadECode(x,x)            
+332 JLINK_DownloadFile                  
+333 JLINK_EMU_COM_IsSupported           
+334 JLINK_EMU_COM_Read                  
+335 JLINK_EMU_COM_Write                 
+336 JLINK_EMU_FILE_Delete               
+337 JLINK_EMU_FILE_GetList              
+338 JLINK_EMU_FILE_GetSize              
+339 JLINK_EMU_FILE_Read                 
+340 JLINK_EMU_FILE_Write                
+341 JLINK_EMU_GPIO_GetProps             
+342 JLINK_EMU_GPIO_GetState             
+343 JLINK_EMU_GPIO_SetState             
+344 JLINK_EMU_GetCounters               
+345 JLINK_EMU_GetDeviceInfo             
+346 JLINK_EMU_GetList                   
+347 JLINK_EMU_GetList(x,x,x)            
+348 JLINK_EMU_GetMaxMemBlock            
+349 JLINK_EMU_GetNumConnections         
+350 JLINK_EMU_GetNumConnections()       
+351 JLINK_EMU_GetNumDevices             
+352 JLINK_EMU_GetProductId              
+353 JLINK_EMU_GetProductId()            
+354 JLINK_EMU_GetProductName            
+355 JLINK_EMU_HasCPUCap                 
+356 JLINK_EMU_HasCapEx                  
+357 JLINK_EMU_IsConnected               
+358 JLINK_EMU_SelectByIndex             
+359 JLINK_EMU_SelectByUSBSN             
+360 JLINK_EMU_SelectIP                  
+361 JLINK_EMU_SelectIPBySN              
+362 JLINK_EMU_SelectIPBySN(x)           
+363 JLINK_EMU_TestNRSpeed               
+364 JLINK_EMU_TestNWSpeed               
+365 JLINK_ETB_IsPresent                 
+366 JLINK_ETB_IsPresent()               
+367 JLINK_ETB_ReadReg                   
+368 JLINK_ETB_ReadReg(x)                
+369 JLINK_ETB_WriteReg                  
+370 JLINK_ETB_WriteReg(x,x,x)           
+371 JLINK_ETM_IsPresent                 
+372 JLINK_ETM_ReadReg                   
+373 JLINK_ETM_StartTrace                
+374 JLINK_ETM_WriteReg                  
+375 JLINK_EnableCheckModeAfterWrite     
+376 JLINK_EnableFlashCache              
+377 JLINK_EnableLog                     
+378 JLINK_EnableLogCom                  
+379 JLINK_EnablePerformanceCnt          
+380 JLINK_EnablePerformanceCnt(x,x)     
+381 JLINK_EnableSoftBPs                 
+382 JLINK_EndDownload                   
+383 JLINK_EndDownload()                 
+384 JLINK_EraseChip                     
+385 JLINK_ExecCommand                   
+386 JLINK_ExecECode                     
+387 JLINK_ExecECode()                   
+388 JLINK_FindBP                        
+389 JLINK_GetAvailableLicense           
+390 JLINK_GetBPInfoEx                   
+391 JLINK_GetCompileDateTime            
+392 JLINK_GetConfigData                 
+393 JLINK_GetDLLVersion                 
+394 JLINK_GetDebugInfo                  
+395 JLINK_GetDebugInfo(x,x)             
+396 JLINK_GetDeviceFamily               
+397 JLINK_GetDeviceFamily()             
+398 JLINK_GetEmbeddedFWString           
+399 JLINK_GetEmbeddedFWString(x,x,x)    
+400 JLINK_GetEmbeddedFWVersion          
+401 JLINK_GetEmbeddedFWVersion()        
+402 JLINK_GetEmuCaps                    
+403 JLINK_GetEmuCapsEx                  
+404 JLINK_GetEmuCapsEx(x,x)             
+405 JLINK_GetExecTime                   
+406 JLINK_GetExecTime(x,x)              
+407 JLINK_GetFeatureString              
+408 JLINK_GetFirmwareString             
+409 JLINK_GetHWInfo                     
+410 JLINK_GetHWInfo(x,x)                
+411 JLINK_GetHWStatus                   
+412 JLINK_GetHardwareVersion            
+413 JLINK_GetIRLen                      
+414 JLINK_GetId                         
+415 JLINK_GetIdData                     
+416 JLINK_GetMOEs                       
+417 JLINK_GetMOEs(x,x)                  
+418 JLINK_GetNumBPUnits                 
+419 JLINK_GetNumBPs                     
+420 JLINK_GetNumWPUnits                 
+421 JLINK_GetNumWPUnits()               
+422 JLINK_GetNumWPs                     
+423 JLINK_GetOEMString                  
+424 JLINK_GetPCode                      
+425 JLINK_GetPerformanceCnt             
+426 JLINK_GetPerformanceCnt(x)          
+427 JLINK_GetRegisterList               
+428 JLINK_GetRegisterName               
+429 JLINK_GetResetTypeDesc              
+430 JLINK_GetResetTypeDesc(x,x,x)       
+431 JLINK_GetSN                         
+432 JLINK_GetScanLen                    
+433 JLINK_GetSelDevice                  
+434 JLINK_GetSpeed                      
+435 JLINK_GetSpeedInfo                  
+436 JLINK_GetSpeedInfo(x)               
+437 JLINK_GetU32                        
+438 JLINK_GetWPInfoEx                   
+439 JLINK_GetWPInfoEx(x,x)              
+440 JLINK_GetpSharedMem                 
+441 JLINK_GetpSharedMem()               
+442 JLINK_Go                            
+443 JLINK_GoAllowSim                    
+444 JLINK_GoEx                          
+445 JLINK_GoHalt                        
+446 JLINK_GoHalt(x)                     
+447 JLINK_GoIntDis                      
+448 JLINK_HSS_Read                      
+449 JLINK_HSS_Start                     
+450 JLINK_HSS_Stop                      
+451 JLINK_Halt                          
+452 JLINK_HasError                      
+453 JLINK_INDICATORS_SetState           
+454 JLINK_INDICATORS_SetState(x,x)      
+455 JLINK_IsConnected                   
+456 JLINK_IsHalted                      
+457 JLINK_IsOpen                        
+458 JLINK_JTAG_ConfigDevices            
+459 JLINK_JTAG_ConfigDevices(x,x)       
+460 JLINK_JTAG_DisableIF                
+461 JLINK_JTAG_DisableIF()              
+462 JLINK_JTAG_EnableIF                 
+463 JLINK_JTAG_EnableIF()               
+464 JLINK_JTAG_GetData                  
+465 JLINK_JTAG_GetData(x,x,x)           
+466 JLINK_JTAG_GetDeviceId              
+467 JLINK_JTAG_GetDeviceInfo            
+468 JLINK_JTAG_GetDeviceInfo(x,x)       
+469 JLINK_JTAG_GetU16                   
+470 JLINK_JTAG_GetU16(x)                
+471 JLINK_JTAG_GetU32                   
+472 JLINK_JTAG_GetU32(x)                
+473 JLINK_JTAG_GetU8                    
+474 JLINK_JTAG_GetU8(x)                 
+475 JLINK_JTAG_StoreData                
+476 JLINK_JTAG_StoreGetData             
+477 JLINK_JTAG_StoreGetData(x,x,x)      
+478 JLINK_JTAG_StoreGetRaw              
+479 JLINK_JTAG_StoreInst                
+480 JLINK_JTAG_StoreInst(x,x)           
+481 JLINK_JTAG_StoreRaw                 
+482 JLINK_JTAG_StoreRaw(x,x,x)          
+483 JLINK_JTAG_SyncBits                 
+484 JLINK_JTAG_SyncBytes                
+485 JLINK_JTAG_WriteData                
+486 JLINK_JTAG_WriteData(x,x,x)         
+487 JLINK_Lock                          
+488 JLINK_Lock()                        
+489 JLINK_MeasureCPUSpeed               
+490 JLINK_MeasureCPUSpeedEx             
+491 JLINK_MeasureCPUSpeedEx(x,x,x)      
+492 JLINK_MeasureRTCKReactTime          
+493 JLINK_MeasureRTCKReactTime(x)       
+494 JLINK_MeasureSCLen                  
+495 JLINK_NET_Close                     
+496 JLINK_NET_Close()                   
+497 JLINK_NET_Open                      
+498 JLINK_NET_Open()                    
+499 JLINK_Open                          
+500 JLINK_OpenEx                        
+501 JLINK_PCODE_Exec                    
+502 JLINK_PCODE_Exec(x,x,x)             
+503 JLINK_PCODE_GetCaps                 
+504 JLINK_PCODE_GetCaps(x)              
+505 JLINK_PCODE_GetS32Version           
+506 JLINK_PCODE_GetS32Version(x)        
+507 JLINK_POWERTRACE_Control            
+508 JLINK_POWERTRACE_Control(x,x,x)     
+509 JLINK_POWERTRACE_Read               
+510 JLINK_POWERTRACE_Read(x,x)          
+511 JLINK_PrintConfig                   
+512 JLINK_PrintConfig(x,x,x,x)          
+513 JLINK_RAWTRACE_Control              
+514 JLINK_RAWTRACE_Control(x,x)         
+515 JLINK_RAWTRACE_Read                 
+516 JLINK_RAWTRACE_Read(x,x)            
+517 JLINK_RTTERMINAL_Control            
+518 JLINK_RTTERMINAL_Read               
+519 JLINK_RTTERMINAL_Write              
+520 JLINK_ReadCodeMem                   
+521 JLINK_ReadConfigReg                 
+522 JLINK_ReadControlReg                
+523 JLINK_ReadDCC                       
+524 JLINK_ReadDCCFast                   
+525 JLINK_ReadDebugPort                 
+526 JLINK_ReadDebugPort(x,x)            
+527 JLINK_ReadDebugReg                  
+528 JLINK_ReadEmu                       
+529 JLINK_ReadEmu(x,x)                  
+530 JLINK_ReadEmuConfigMem              
+531 JLINK_ReadICEReg                    
+532 JLINK_ReadMem                       
+533 JLINK_ReadMemEx                     
+534 JLINK_ReadMemHW                     
+535 JLINK_ReadMemIndirect               
+536 JLINK_ReadMemU16                    
+537 JLINK_ReadMemU32                    
+538 JLINK_ReadMemU64                    
+539 JLINK_ReadMemU64(x,x,x,x)           
+540 JLINK_ReadMemU8                     
+541 JLINK_ReadReg                       
+542 JLINK_ReadRegs                      
+543 JLINK_ReadRegs(x,x,x,x)             
+544 JLINK_ReadTerminal                  
+545 JLINK_ReadTerminal(x,x)             
+546 JLINK_Reset                         
+547 JLINK_ResetNoHalt                   
+548 JLINK_ResetPullsRESET               
+549 JLINK_ResetPullsTRST                
+550 JLINK_ResetTRST                     
+551 JLINK_STRACE_Config                 
+552 JLINK_STRACE_Read                   
+553 JLINK_STRACE_Start                  
+554 JLINK_STRACE_Stop                   
+555 JLINK_SWD_DisableSWCLK              
+556 JLINK_SWD_DisableSWCLK()            
+557 JLINK_SWD_EnableSWCLK               
+558 JLINK_SWD_EnableSWCLK()             
+559 JLINK_SWD_GetData                   
+560 JLINK_SWD_GetData(x,x,x)            
+561 JLINK_SWD_GetU16                    
+562 JLINK_SWD_GetU16(x)                 
+563 JLINK_SWD_GetU32                    
+564 JLINK_SWD_GetU32(x)                 
+565 JLINK_SWD_GetU8                     
+566 JLINK_SWD_GetU8(x)                  
+567 JLINK_SWD_SetDirIn                  
+568 JLINK_SWD_SetDirIn()                
+569 JLINK_SWD_SetDirOut                 
+570 JLINK_SWD_SetDirOut()               
+571 JLINK_SWD_StoreGetRaw               
+572 JLINK_SWD_StoreGetRaw(x,x,x,x)      
+573 JLINK_SWD_StoreRaw                  
+574 JLINK_SWD_StoreRaw(x,x,x)           
+575 JLINK_SWD_SyncBits                  
+576 JLINK_SWD_SyncBits()                
+577 JLINK_SWD_SyncBytes                 
+578 JLINK_SWD_SyncBytes()               
+579 JLINK_SWO_Control                   
+580 JLINK_SWO_Control(x,x)              
+581 JLINK_SWO_Read                      
+582 JLINK_SWO_Read(x,x,x)               
+583 JLINK_SelDevice                     
+584 JLINK_SelectDeviceFamily            
+585 JLINK_SelectDeviceFamily(x)         
+586 JLINK_SelectIP                      
+587 JLINK_SelectTraceSource             
+588 JLINK_SelectTraceSource(x)          
+589 JLINK_SelectUSB                     
+590 JLINK_SetBP                         
+591 JLINK_SetBPEx                       
+592 JLINK_SetDataEvent                  
+593 JLINK_SetDataEvent(x,x)             
+594 JLINK_SetDebugUnitBlockMask         
+595 JLINK_SetDebugUnitBlockMask(x,x)    
+596 JLINK_SetEndian                     
+597 JLINK_SetErrorOutHandler            
+598 JLINK_SetFlashArea                  
+599 JLINK_SetInitRegsOnReset            
+600 JLINK_SetLogFile                    
+601 JLINK_SetMaxSpeed                   
+602 JLINK_SetRESET                      
+603 JLINK_SetResetDelay                 
+604 JLINK_SetResetPara                  
+605 JLINK_SetResetType                  
+606 JLINK_SetSpeed                      
+607 JLINK_SetTCK                        
+608 JLINK_SetTDI                        
+609 JLINK_SetTMS                        
+610 JLINK_SetTRST                       
+611 JLINK_SetWP                         
+612 JLINK_SetWaitFunction               
+613 JLINK_SetWaitFunction(x,x)          
+614 JLINK_SetWarnOutHandler             
+615 JLINK_SimulateInstruction           
+616 JLINK_Step                          
+617 JLINK_StepComposite                 
+618 JLINK_StoreBits                     
+619 JLINK_StoreCmd                      
+620 JLINK_StoreCmd(x)                   
+621 JLINK_TIF_GetAvailable              
+622 JLINK_TIF_GetAvailable(x)           
+623 JLINK_TIF_Select                    
+624 JLINK_TIF_Select(x)                 
+625 JLINK_TRACE_AddInst                 
+626 JLINK_TRACE_AddInst(x,x)            
+627 JLINK_TRACE_AddItems                
+628 JLINK_TRACE_AddItems(x,x)           
+629 JLINK_TRACE_Control                 
+630 JLINK_TRACE_Control(x,x)            
+631 JLINK_TRACE_Read                    
+632 JLINK_TRACE_Read(x,x,x)             
+633 JLINK_Test                          
+634 JLINK_Unlock                        
+635 JLINK_Unlock()                      
+636 JLINK_UpdateFirmware                
+637 JLINK_UpdateFirmwareIfNewer         
+638 JLINK_UpdateReplaceFirmware         
+639 JLINK_UpdateReplaceFirmware(x,x)    
+640 JLINK_WA_AddRange                   
+641 JLINK_WA_AddRange(x,x)              
+642 JLINK_WA_Restore                    
+643 JLINK_WA_Restore()                  
+644 JLINK_WaitDCCRead                   
+645 JLINK_WaitForHalt                   
+646 JLINK_WaitForHalt(x)                
+647 JLINK_WriteBits                     
+648 JLINK_WriteBits()                   
+649 JLINK_WriteConfigReg                
+650 JLINK_WriteControlReg               
+651 JLINK_WriteDCC                      
+652 JLINK_WriteDCCFast                  
+653 JLINK_WriteDebugPort                
+654 JLINK_WriteDebugPort(x,x)           
+655 JLINK_WriteDebugReg                 
+656 JLINK_WriteEmu                      
+657 JLINK_WriteEmu(x,x)                 
+658 JLINK_WriteEmuConfigMem             
+659 JLINK_WriteICEReg                   
+660 JLINK_WriteMem                      
+661 JLINK_WriteMemDelayed               
+662 JLINK_WriteMemEx                    
+663 JLINK_WriteMemHW                    
+664 JLINK_WriteMemHW(x,x,x)             
+665 JLINK_WriteReg                      
+666 JLINK_WriteRegs                     
+667 JLINK_WriteRegs(x,x,x,x)            
+668 JLINK_WriteU16                      
+669 JLINK_WriteU32                      
+670 JLINK_WriteU64                      
+671 JLINK_WriteU64(x,x,x)               
+672 JLINK_WriteU8                       
+673 JLINK_WriteVectorCatch              
+674 JLINK_WriteVectorCatch(x)           
+675 JLINK_WriteVerifyMem                
