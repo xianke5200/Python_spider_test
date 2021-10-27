@@ -969,7 +969,33 @@ class Little_tool(QWidget):
                 串口数据接受回调函数，同时将数据显示到textEdit中
         """
         self.ser_mutex.acquire()
-        ser_datalen = self.ser.inWaiting()
+        try:
+            ser_datalen = self.ser.inWaiting()
+        except:
+            self.serial_update()
+            self.recvtmr.stop()
+            # self.ser_thread.pause()
+            self.sendfile_tmr.stop()
+            try:
+                self.ser.close()
+            except:
+                QMessageBox.critical(self, '串口关闭失败', '串口关闭失败')
+                return None
+
+            if self.is_sendfile:
+                self.sfile.close()
+                self.is_sendfile = False
+                self.file_send_len = 0
+                self.snd_bar_value = 0
+                self.ser_send_filebtn.setText('发送文件')
+                self.ser_file_select.setEnabled(True)
+            self.set_openbtn.setText("打开串口")
+            self.ser_sendbtn.setEnabled(False)
+            self.ser_send_filebtn.setEnabled(False)
+            self.ser_working = False
+            self.ser_mutex.release()
+            return None
+
         if(ser_datalen):
             data_recv = self.ser.read(ser_datalen)
             #print(data_recv, len(data_recv), ser_datalen)
