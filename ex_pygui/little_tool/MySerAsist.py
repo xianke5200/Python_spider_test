@@ -63,7 +63,7 @@ class Serial_window(object):
         self.sfile.close()
         self.rfile.close()
 
-    def setupUi(self, frame, width, rom_frame):
+    def setupUi(self, frame, width):
         """
             串口程序UI布局
         """
@@ -193,18 +193,18 @@ class Serial_window(object):
         self.send_with_enter.setObjectName("send_with_enter")
         self.gridLayout.addWidget(self.send_with_enter, 4, 5, 1, 1)
 
-        self.sendfile_time_lable = QLabel(rom_frame)
+        self.sendfile_time_lable = QLabel(self.custom_frame)
         self.sendfile_time_lable.setText('文件发送时长: 0ms' )
         self.sendfile_time_lable.setVisible(False)
         self.sendfile_time_lable.setGeometry(100, frame.height(), 50, 25)
         frame2_bar.addPermanentWidget(self.sendfile_time_lable)
 
-        self.send_bar = QProgressBar(rom_frame)
+        self.send_bar = QProgressBar(self.custom_frame)
         self.send_bar.setGeometry(50, frame.height(), 50, 20)
         self.send_bar.setVisible(False)
         frame2_bar.addPermanentWidget(self.send_bar)
 
-        self.sr_lable = QLabel(rom_frame)
+        self.sr_lable = QLabel(self.custom_frame)
         self.sr_lable.setText('S:       R:      ')
         self.sr_lable.setGeometry(100, frame.height(), 50, 25)
         frame2_bar.addPermanentWidget(self.sr_lable)
@@ -567,7 +567,7 @@ class Serial_window(object):
         """
             点击选择要发送的文件
         """
-        file, ok1 = QFileDialog.getOpenFileName(
+        file, ok1 = QFileDialog.getOpenFileName(self.frame,
                                                 "文件选择",
                                                 "./",
                                                 "All Files (*);;Txt Files (.txt);;Bin Files (.bin)")
