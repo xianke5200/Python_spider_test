@@ -31,6 +31,13 @@ from MySerAsist import Serial_window
 
 import binascii
 
+Tool_dict = {
+    'file_sqlite_define' : 0,
+    'serial_define' : 1,
+    'picbin_define' : 2,
+    'segger_define' : 3
+}
+
 class Little_tool(QWidget):
     def __init__(self):
         super().__init__()
@@ -50,10 +57,10 @@ class Little_tool(QWidget):
 
         self.content_font = QFont("微软雅黑", 12, QFont.Medium)  # 定义字体样式
 
+        self.excel_display = excel_window()
         self.Serial_display = Serial_window()
         self.picbin_display = picbin_window()
         self.segger_display = Segger_Dialog()
-        self.excel_display = excel_window()
 
         self.center()
 
@@ -86,6 +93,7 @@ class Little_tool(QWidget):
                 self.Serial_display.window_clear()
             except:
                 return
+            self.segger_display.segger_setting_file_update()
 
             event.accept()
         else:
@@ -93,17 +101,24 @@ class Little_tool(QWidget):
 
     def resizeEvent(self, e: QtGui.QResizeEvent):
         # print('%d, %d', e.size().width(), e.size().height())
-        # 窗口1 大小跟随主窗口
+
         self.frame_tool.resize(e.size().width(), 25)
         self.main_frame.resize(e.size().width(), e.size().height() - 25)
-        self.rom_frame.resize(e.size().width(), e.size().height() - 50)
-        # 窗口2 大小跟随主窗口
-        self.start_btn.setGeometry(e.size().width() * 0.3, e.size().height() * 0.8, 100, 40)
-        self.quit_btn.setGeometry(e.size().width() * 0.6, e.size().height() * 0.8, 100, 40)
 
-        self.custom_frame.resize(e.size().width(), e.size().height()-50)
-        self.picbin_frame.resize(e.size().width(), e.size().height() - 50)
-        self.segger_frame.resize(e.size().width(), e.size().height() - 50)
+        # 窗口1 大小跟随主窗口
+        if 'file_sqlite_define' in Tool_dict:
+            self.rom_frame.resize(e.size().width(), e.size().height() - 50)
+            self.start_btn.setGeometry(e.size().width() * 0.3, e.size().height() * 0.8, 100, 40)
+            self.quit_btn.setGeometry(e.size().width() * 0.6, e.size().height() * 0.8, 100, 40)
+        # 窗口2 大小跟随主窗口
+        if 'serial_define' in Tool_dict:
+            self.custom_frame.resize(e.size().width(), e.size().height()-50)
+        # 窗口3 大小跟随主窗口
+        if 'picbin_define' in Tool_dict:
+            self.picbin_frame.resize(e.size().width(), e.size().height() - 50)
+        # 窗口4 大小跟随主窗口
+        if 'picbin_define' in Tool_dict:
+            self.segger_frame.resize(e.size().width(), e.size().height() - 50)
 
     # def keyPressEvent(self, a0: QtGui.QKeyEvent):
     #     self.textEdit.keyPressEvent(a0)
@@ -119,50 +134,81 @@ class Little_tool(QWidget):
         self.frame_tool.setFrameShape(QFrame.Panel)
         self.frame_tool.setFrameShadow(QFrame.Raised)
 
-        # 1.1 界面1按钮
-        self.window1_btn = QToolButton(self.frame_tool)
-        self.window1_btn.setCheckable(True)
-        self.window1_btn.setText("固件标题修正")
-        self.window1_btn.setObjectName("menu_btn")
-        self.window1_btn.resize(100, 25)
-        self.window1_btn.clicked.connect(self.click_window1)
-        self.window1_btn.setAutoRaise(True)  # 去掉工具按钮的边框线如果是QPushButton按钮的话，就是用setFlat(True)这个方法，用法相同
-
-        # 1.2 界面2按钮
-        self.window2_btn = QToolButton(self.frame_tool)
-        self.window2_btn.setCheckable(True)
-        self.window2_btn.setText("串口小工具")
-        self.window2_btn.setObjectName("menu_btn")
-        self.window2_btn.resize(100, 25)
-        self.window2_btn.move(self.window1_btn.width(), 0)
-        self.window2_btn.clicked.connect(self.click_window2)
-        self.window2_btn.setAutoRaise(True)
-
-        # 1.3 界面3按钮
-        self.window3_btn = QToolButton(self.frame_tool)
-        self.window3_btn.setCheckable(True)
-        self.window3_btn.setText("图片转换")
-        self.window3_btn.setObjectName("menu_btn")
-        self.window3_btn.resize(100, 25)
-        self.window3_btn.move(self.window2_btn.x() + self.window2_btn.width(), 0)
-        self.window3_btn.clicked.connect(self.click_window3)
-        self.window3_btn.setAutoRaise(True)
-
-        # 1.4 界面4按钮
-        self.window4_btn = QToolButton(self.frame_tool)
-        self.window4_btn.setCheckable(True)
-        self.window4_btn.setText("Segger工具")
-        self.window4_btn.setObjectName("menu_btn")
-        self.window4_btn.resize(100, 25)
-        self.window4_btn.move(self.window3_btn.x() + self.window3_btn.width(), 0)
-        self.window4_btn.clicked.connect(self.click_window4)
-        self.window4_btn.setAutoRaise(True)
-
         self.btn_group = QButtonGroup(self.frame_tool)
-        self.btn_group.addButton(self.window1_btn, 1)
-        self.btn_group.addButton(self.window2_btn, 2)
-        self.btn_group.addButton(self.window3_btn, 3)
-        self.btn_group.addButton(self.window4_btn, 4)
+
+        # 2. 工作区域
+        self.main_frame = QFrame(self)
+        self.main_frame.setGeometry(0, 25, self.width(), self.height() - self.frame_tool.height())
+        # self.main_frame.setStyleSheet("background-color: rgb(65, 95, 255)")
+
+        # 创建堆叠布局
+        self.stacked_layout = QStackedLayout(self.main_frame)
+        # self.setLayout(self.stacked_layout)
+
+        help_btn_start_x = 0
+
+        if 'file_sqlite_define' in Tool_dict:
+            # 1.1 界面1按钮
+            self.window1_btn = QToolButton(self.frame_tool)
+            self.window1_btn.setCheckable(True)
+            self.window1_btn.setText("固件标题修正")
+            self.window1_btn.setObjectName("menu_btn")
+            self.window1_btn.resize(100, 25)
+            self.window1_btn.clicked.connect(lambda: self.click_window(Tool_dict['file_sqlite_define']))
+            self.window1_btn.setAutoRaise(True)  # 去掉工具按钮的边框线如果是QPushButton按钮的话，就是用setFlat(True)这个方法，用法相同
+            self.btn_group.addButton(self.window1_btn, 1)
+            help_btn_start_x += self.window1_btn.width()
+            main_frame1, self.rom_frame, self.start_btn, self.quit_btn = self.excel_display.setupUi(self.main_frame,
+                                                                                                    self.width(),
+                                                                                                    self.height(), self)
+            self.stacked_layout.addWidget(main_frame1)
+
+        if 'serial_define' in Tool_dict:
+            # 1.2 界面2按钮
+            self.window2_btn = QToolButton(self.frame_tool)
+            self.window2_btn.setCheckable(True)
+            self.window2_btn.setText("串口小工具")
+            self.window2_btn.setObjectName("menu_btn")
+            self.window2_btn.resize(100, 25)
+            self.window2_btn.move(help_btn_start_x, 0)
+            self.window2_btn.clicked.connect(lambda: self.click_window(Tool_dict['serial_define']))
+            self.window2_btn.setAutoRaise(True)
+            self.btn_group.addButton(self.window2_btn, 2)
+            help_btn_start_x += self.window2_btn.width()
+            main_frame2, self.custom_frame = self.Serial_display.setupUi(self.main_frame, self.width())
+            self.stacked_layout.addWidget(main_frame2)
+            self.Serial_display.serial_update()
+
+        if 'picbin_define' in Tool_dict:
+            # 1.3 界面3按钮
+            self.window3_btn = QToolButton(self.frame_tool)
+            self.window3_btn.setCheckable(True)
+            self.window3_btn.setText("图片转换")
+            self.window3_btn.setObjectName("menu_btn")
+            self.window3_btn.resize(100, 25)
+            self.window3_btn.move(help_btn_start_x, 0)
+            self.window3_btn.clicked.connect(lambda : self.click_window(Tool_dict['picbin_define']))
+            self.window3_btn.setAutoRaise(True)
+            self.btn_group.addButton(self.window3_btn, 3)
+            help_btn_start_x += self.window3_btn.width()
+            main_frame3, self.picbin_frame = self.picbin_display.setupUi(self.main_frame, self.width())
+            self.stacked_layout.addWidget(main_frame3)
+
+        if 'segger_define' in Tool_dict:
+            # 1.4 界面4按钮
+            self.window4_btn = QToolButton(self.frame_tool)
+            self.window4_btn.setCheckable(True)
+            self.window4_btn.setText("Segger工具")
+            self.window4_btn.setObjectName("menu_btn")
+            self.window4_btn.resize(100, 25)
+            self.window4_btn.move(help_btn_start_x, 0)
+            self.window4_btn.clicked.connect(lambda: self.click_window(Tool_dict['segger_define']))
+            self.window4_btn.setAutoRaise(True)
+            self.btn_group.addButton(self.window4_btn, 4)
+            help_btn_start_x += self.window4_btn.width()
+            main_frame4, self.segger_frame = self.segger_display.setupUi(self.main_frame, self.width())
+            self.stacked_layout.addWidget(main_frame4)
+            self.segger_display.segger_settint_file_check()
 
         # 1.5 帮助下拉菜单栏
         # 创建帮助工具按钮
@@ -170,7 +216,7 @@ class Little_tool(QWidget):
         help_btn.setText("帮助")
         help_btn.setObjectName("menu_btn")
         help_btn.resize(100, 25)
-        help_btn.move(self.window4_btn.x() + self.window4_btn.width(), 0)
+        help_btn.move(help_btn_start_x, 0)
         help_btn.setAutoRaise(True)
         help_btn.setPopupMode(QToolButton.InstantPopup)
         # 创建关于菜单
@@ -185,26 +231,6 @@ class Little_tool(QWidget):
         # 把help_menu放入help_btn
         help_btn.setMenu(help_menu)
 
-        # 2. 工作区域
-        self.main_frame = QFrame(self)
-        self.main_frame.setGeometry(0, 25, self.width(), self.height() - self.frame_tool.height())
-        # self.main_frame.setStyleSheet("background-color: rgb(65, 95, 255)")
-
-        # 创建堆叠布局
-        self.stacked_layout = QStackedLayout(self.main_frame)
-        #self.setLayout(self.stacked_layout)
-
-        main_frame1, self.rom_frame, self.start_btn, self.quit_btn = self.excel_display.setupUi(self.main_frame, self.width(), self.height(), self)
-        main_frame2, self.custom_frame = self.Serial_display.setupUi(self.main_frame, self.width())
-        main_frame3, self.picbin_frame = self.picbin_display.setupUi(self.main_frame, self.width())
-        main_frame4, self.segger_frame = self.segger_display.setupUi(self.main_frame, self.width())
-
-        # 把两个布局放进去
-        self.stacked_layout.addWidget(main_frame1)
-        self.stacked_layout.addWidget(main_frame2)
-        self.stacked_layout.addWidget(main_frame3)
-        self.stacked_layout.addWidget(main_frame4)
-
         # self.layout = QBoxLayout(QBoxLayout.BottomToTop)
         # self.layout_test = QBoxLayout(QBoxLayout.LeftToRight)
         # self.frame_tool.setLayout(self.layout)
@@ -216,25 +242,13 @@ class Little_tool(QWidget):
         # self.layout.addLayout(self.layout_test)
         # self.layout.addLayout(self.stacked_layout)
 
-    def click_window1(self):
-        if self.stacked_layout.currentIndex() != 0:
-            self.stacked_layout.setCurrentIndex(0)
-            #self.frame1_bar.showMessage("欢迎使用")
-
-    def click_window2(self):
-        if self.stacked_layout.currentIndex() != 1:
-            self.stacked_layout.setCurrentIndex(1)
+    def click_window(self, arg):
+        if self.stacked_layout.currentIndex() != arg:
+            self.stacked_layout.setCurrentIndex(arg)
+            # self.frame1_bar.showMessage("欢迎使用")
             self.Serial_display.serial_update()
-            #self.frame2_bar.showMessage("欢迎进入frame2")
-            #QDesktopServices.openUrl(QUrl("https://www.csdn.net/"))  # 点击window2按钮后，执行这个槽函数的时候，会在浏览器自动打开这个网址
+            self.segger_display.segger_settint_file_check()
 
-    def click_window3(self):
-        if self.stacked_layout.currentIndex() != 2:
-            self.stacked_layout.setCurrentIndex(2)
-
-    def click_window4(self):
-        if self.stacked_layout.currentIndex() != 3:
-            self.stacked_layout.setCurrentIndex(3)
 
     def click_feedback(self, event):
         QMessageBox.about(self, "反馈", "抱歉无法反馈")

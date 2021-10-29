@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1079</width>
-    <height>658</height>
+    <width>839</width>
+    <height>697</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,73 +16,85 @@
   <widget class="QWidget" name="">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>1051</width>
+     <x>0</x>
+     <y>20</y>
+     <width>811</width>
      <height>641</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="2" column="4" colspan="2">
-     <widget class="QLineEdit" name="lineEdit_2"/>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>jlinkARM.dll路径</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_3">
-      <property name="text">
-       <string>填入发送数据</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="8">
-     <widget class="QCheckBox" name="segger_wave_check">
-      <property name="text">
-       <string>波形显示</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="8">
-     <widget class="QCheckBox" name="segger_hexdisp_check">
-      <property name="text">
-       <string>Hex显示</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="8">
-     <widget class="QCheckBox" name="segger_hexsend_check">
-      <property name="text">
-       <string>Hex发送</string>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="7">
-     <widget class="QPushButton" name="segger_program_btn">
-      <property name="text">
-       <string>PushButton</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="4">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>RTT LOG地址</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="6">
+    <item row="4" column="6">
      <widget class="QToolButton" name="segger_rttmap_tbtn">
       <property name="text">
        <string>...</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="0" rowspan="2" colspan="7">
+    <item row="3" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>jlinkARM.dll路径</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="4" rowspan="2">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>RTT LOG地址</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="4" colspan="2">
+     <widget class="QLineEdit" name="lineEdit_2"/>
+    </item>
+    <item row="4" column="3">
+     <widget class="QComboBox" name="segger_mcu_combox"/>
+    </item>
+    <item row="4" column="2">
+     <widget class="QToolButton" name="segger_jlinkarm_tbtn">
+      <property name="text">
+       <string>...</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>烧录文件路径</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="1">
+     <widget class="QLabel" name="label_5">
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>烧录地址</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="5" rowspan="2">
+     <widget class="QRadioButton" name="segger_rttmap_rbtn">
+      <property name="text">
+       <string>.map路径</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0" colspan="2">
+     <widget class="QLineEdit" name="segger_jlinkarm_line"/>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>填入发送数据</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0" rowspan="2" colspan="7">
      <widget class="QLineEdit" name="segger_send_data_line">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -92,57 +104,72 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="5">
-     <widget class="QRadioButton" name="segger_rttmap_rbtn">
-      <property name="text">
-       <string>.map路径</string>
-      </property>
-     </widget>
+    <item row="8" column="2" colspan="5">
+     <widget class="QLineEdit" name="program_addr_line"/>
     </item>
-    <item row="2" column="0">
-     <widget class="QLineEdit" name="segger_jlinkarm_line"/>
-    </item>
-    <item row="0" column="0" colspan="9">
-     <widget class="QTextEdit" name="segger_disp_text"/>
-    </item>
-    <item row="7" column="0" colspan="7">
+    <item row="9" column="0" colspan="6">
      <widget class="QLineEdit" name="segger_program_line"/>
     </item>
-    <item row="2" column="1">
-     <widget class="QToolButton" name="segger_jlinkarm_tbtn">
+    <item row="9" column="6">
+     <widget class="QToolButton" name="program_file_tbtn">
       <property name="text">
        <string>...</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="7">
+    <item row="8" column="7">
      <widget class="QPushButton" name="segger_send_btn">
       <property name="text">
-       <string>PushButton</string>
+       <string>发送</string>
       </property>
      </widget>
     </item>
-    <item row="6" column="0">
-     <widget class="QLabel" name="label_4">
+    <item row="9" column="7">
+     <widget class="QPushButton" name="segger_program_btn">
       <property name="text">
-       <string>烧录文件路径</string>
+       <string>烧录</string>
       </property>
      </widget>
     </item>
-    <item row="2" column="2">
-     <widget class="QComboBox" name="segger_mcu_combox"/>
-    </item>
-    <item row="2" column="7">
-     <widget class="QPushButton" name="segger_link_btn">
+    <item row="8" column="8">
+     <widget class="QCheckBox" name="segger_hexsend_check">
       <property name="text">
-       <string>PushButton</string>
+       <string>Hex发送</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="8">
+     <widget class="QCheckBox" name="segger_hexdisp_check">
+      <property name="text">
+       <string>Hex显示</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="8">
+     <widget class="QCheckBox" name="segger_wave_check">
+      <property name="text">
+       <string>波形显示</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="9">
+     <widget class="QTextEdit" name="segger_disp_text">
+      <property name="lineWrapColumnOrWidth">
+       <number>0</number>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="7">
+     <widget class="QPushButton" name="segger_clear_btn">
+      <property name="text">
+       <string>清空显示</string>
       </property>
      </widget>
     </item>
     <item row="4" column="7">
-     <widget class="QPushButton" name="segger_clear_btn">
+     <widget class="QPushButton" name="segger_link_btn">
       <property name="text">
-       <string>PushButton</string>
+       <string>连接</string>
       </property>
      </widget>
     </item>
