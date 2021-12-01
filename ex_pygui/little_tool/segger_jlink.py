@@ -20,11 +20,13 @@ core_type = ["Cortex-M0",
 
 class Segger_Dialog(object):
     def __init__(self):
-        self.jlinkarm_path = 0
-        self.rtt_start_addr = 0
-        self.program_path = 0
-        self.program_addr = 0
-        self.core_type = 0
+        self.setting_dict = {
+            'core_type': [0, 0],
+            'JLINKARM_PATH': [0, 0],
+            'RTT_ADDR': [0, 0],
+            'PROGRAM_PATH': [0, 0],
+            'PROGRAM_ADDR': [0, 0]
+        }
 
     def setupUi(self, frame, width):
         """
@@ -149,42 +151,85 @@ class Segger_Dialog(object):
             f.seek(0)
             data = f.readline()
             while data:
+                # print(data)
                 if 'JLINKARM_PATH' in data:
-                    self.jlinkarm_path = f.readline()
-                    self.segger_jlinkarm_line.setText(self.jlinkarm_path)
+                    self.setting_dict['JLINKARM_PATH'][0] = 1
+                    self.setting_dict['RTT_ADDR'][0] = 0
+                    self.setting_dict['PROGRAM_PATH'][0] = 0
+                    self.setting_dict['PROGRAM_ADDR'][0] = 0
+                    data = f.readline()
+                elif 'RTT_ADDR' in data:
+                    self.setting_dict['JLINKARM_PATH'][0] = 0
+                    self.setting_dict['RTT_ADDR'][0] = 1
+                    self.setting_dict['PROGRAM_PATH'][0] = 0
+                    self.setting_dict['PROGRAM_ADDR'][0] = 0
+                    data = f.readline()
+                elif '[PROGRAM_PATH]' in data:
+                    self.setting_dict['JLINKARM_PATH'][0] = 0
+                    self.setting_dict['RTT_ADDR'][0] = 0
+                    self.setting_dict['PROGRAM_PATH'][0] = 1
+                    self.setting_dict['PROGRAM_ADDR'][0] = 0
+                    data = f.readline()
+                elif '[PROGRAM_ADDR]' in data:
+                    self.setting_dict['JLINKARM_PATH'][0] = 0
+                    self.setting_dict['RTT_ADDR'][0] = 0
+                    self.setting_dict['PROGRAM_PATH'][0] = 0
+                    self.setting_dict['PROGRAM_ADDR'][0] = 1
+                    data = f.readline()
+
+
+                if data == '\r' or data == '\n':
+                    data = f.readline()
+                    continue
+
+                if self.setting_dict['JLINKARM_PATH'][0]:
+                    self.setting_dict['JLINKARM_PATH'][1] = data
+                    self.segger_jlinkarm_line.setText(self.setting_dict['JLINKARM_PATH'][1])
+                    self.setting_dict['JLINKARM_PATH'][0] = 0
                     # print(self.jlinkarm_path)
-                if 'RTT_ADDR' in data:
-                    self.rtt_start_addr = int(f.readline(), 16)
-                    self.lineEdit_2.setText('0x%x' %(self.rtt_start_addr))
+                elif self.setting_dict['RTT_ADDR'][0]:
+                    self.setting_dict['RTT_ADDR'][1] = int(data, 16)
+                    self.lineEdit_2.setText('0x%x' % (self.setting_dict['RTT_ADDR'][1]))
+                    self.setting_dict['RTT_ADDR'][0] = 0
                     # print(self.rtt_start_addr)
-                if '[PROGRAM_PATH]' in data:
-                    self.program_path = f.readline()
-                    self.segger_program_line.setText(self.program_path)
+                elif self.setting_dict['PROGRAM_PATH'][0]:
+                    self.setting_dict['PROGRAM_PATH'][1] = data
+                    self.segger_program_line.setText(self.setting_dict['PROGRAM_PATH'][1])
+                    self.setting_dict['PROGRAM_PATH'][0] = 0
                     # print(self.rtt_start_addr)
-                if '[PROGRAM_ADDR]' in data:
-                    self.program_addr = int(f.readline(), 16)
-                    self.program_addr_line.setText('0x%x' %(self.program_addr))
+                elif self.setting_dict['PROGRAM_ADDR'][0]:
+                    self.setting_dict['PROGRAM_ADDR'][1] = int(data, 16)
+                    self.program_addr_line.setText('0x%x' % (self.setting_dict['PROGRAM_ADDR'][1]))
+                    self.setting_dict['PROGRAM_ADDR'][0] = 0
                     # print(self.rtt_start_addr)
+
                 data = f.readline()
 
         for i in range(len(core_type)):
             self.segger_mcu_combox.addItem(core_type[i])
 
-        self.core_type = self.segger_mcu_combox.currentText()
+        self.setting_dict['core_type'][1] = self.segger_mcu_combox.currentText()
 
     def segger_setting_file_update(self):
+        self.setting_dict['core_type'][1] = self.segger_mcu_combox.currentText()
+        self.setting_dict['JLINKARM_PATH'][1] = self.segger_jlinkarm_line.text()
+        if self.lineEdit_2.text():
+            self.setting_dict['RTT_ADDR'][1] = int(self.lineEdit_2.text(), 16)
+        self.setting_dict['PROGRAM_PATH'][1] = self.segger_program_line.text()
+        if self.program_addr_line.text():
+            self.setting_dict['PROGRAM_ADDR'][1] = int(self.program_addr_line.text(), 16)
+
         with open("setting.ini", 'w+') as f:
-            f.write('[JLINKARM_PATH]\r\n')
-            f.write(self.jlinkarm_path+'\r\n')
-            f.write('\r\n')
-            f.write('[RTT_ADDR]\r\n')
-            f.write('0x%x\r\n' %(self.rtt_start_addr))
-            f.write('\r\n')
-            f.write('[PROGRAM_PATH]\r\n')
-            f.write(self.program_path + '\r\n')
-            f.write('\r\n')
-            f.write('[PROGRAM_ADDR]\r\n')
-            f.write('0x%x\r\n' %(self.program_addr))
+            f.write('[core_type]\n')
+            f.write(self.setting_dict['core_type'][1] + '\r\n')
+            f.write('[JLINKARM_PATH]\n')
+            f.write(self.setting_dict['JLINKARM_PATH'][1]+'\n')
+            f.write('[RTT_ADDR]\n')
+            f.write('0x%x\r\n' %(self.setting_dict['RTT_ADDR'][1]))
+            f.write('[PROGRAM_PATH]\n')
+            f.write(self.setting_dict['PROGRAM_PATH'][1] + '\r\n')
+            f.write('[PROGRAM_ADDR]\n')
+            f.write('0x%x\n' %(self.setting_dict['PROGRAM_ADDR'][1]))
 
     def retranslateUi(self):
         self.segger_rttmap_tbtn.setText("...")
@@ -208,12 +253,12 @@ class Segger_Dialog(object):
         """
             点击选择JlinkARM.dll的文件路径
         """
-        self.jlinkarm_path, ok1 = QFileDialog.getOpenFileName(self.frame,
+        self.setting_dict['JLINKARM_PATH'][1], ok1 = QFileDialog.getOpenFileName(self.frame,
                                                 "文件选择",
                                                 "./",
                                                 "All Files (*);;dll Files (.dll)")
         if ok1:
-            self.segger_jlinkarm_line.setText(self.jlinkarm_path)
+            self.segger_jlinkarm_line.setText(self.setting_dict['JLINKARM_PATH'][1])
 
     def segger_rttmap_tbtn_clicked(self):
         """
@@ -237,12 +282,12 @@ class Segger_Dialog(object):
                                 addr = linedata[i]
                                 break
                         try:
-                            self.rtt_start_addr = int(addr, 16)
+                            self.setting_dict['RTT_ADDR'][1] = int(addr, 16)
                         except:
                             data = f.readline()
                             continue
                         else:
-                            self.lineEdit_2.setText('0x%x' %(self.rtt_start_addr))
+                            self.lineEdit_2.setText('0x%x' %(self.setting_dict['RTT_ADDR'][1]))
                     data = f.readline()
 
     def segger_rttmap_rbtn_clicked(self):
@@ -264,18 +309,18 @@ class Segger_Dialog(object):
         """
             点击选择需要烧录的文件路径
         """
-        self.program_path, ok1 = QFileDialog.getOpenFileName(self.frame,
+        self.setting_dict['PROGRAM_PATH'][1], ok1 = QFileDialog.getOpenFileName(self.frame,
                                                               "文件选择",
                                                               "./",
                                                               "All Files (*);;dll Files (.bin);;dll Files (.hex)")
         if ok1:
-            self.segger_program_line.setText(self.program_path)
+            self.segger_program_line.setText(self.setting_dict['PROGRAM_PATH'][1])
 
     def segger_program_btn_clicked(self):
         try:
-            self.program_addr = int(self.program_addr_line.text(), 16)
-            program_file = open(self.program_path, 'r')
-            self.core_type = self.segger_mcu_combox.currentText()
+            self.setting_dict['PROGRAM_ADDR'][1] = int(self.program_addr_line.text(), 16)
+            program_file = open(self.setting_dict['PROGRAM_PATH'][1], 'r')
+            self.setting_dict['core_type'][1] = self.segger_mcu_combox.currentText()
         except:
             QMessageBox.warning(self.frame, '警告', '烧录参数错误')
 
@@ -283,7 +328,14 @@ class Segger_Dialog(object):
         return
 
     def segger_hexdisp_check_checked(self):
-        return
+        # if self.segger_hexdisp_check.isChecked():
+        #     text = ''.join(f'{x:02X} ' for x in self.segger_disp_text.toPlainText())
+        # else:
+        #     text = self.segger_disp_text.toPlainText().decode('latin')
+        pass
+
 
     def segger_hexsend_check_checked(self):
-        return
+        text = self.segger_send_data_line.text()
+        if self.segger_hexsend_check.isChecked():
+            text = ''.join([chr(int(x, 16)) for x in text.split()])

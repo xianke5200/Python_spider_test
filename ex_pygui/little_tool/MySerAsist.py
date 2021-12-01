@@ -432,12 +432,15 @@ class Serial_window(object):
             功能未完善
         """
         if self.ser_sendhex.isChecked():
-            # data_temp = self.ser_display_lineedit.text()
-            # data = ''
-            # for i in range(0, len(data_temp)):
-            #     data = data + '%02x' %(int(data_temp[i])) + ' '
-            # self.ser_display_lineedit.setText(data)
-            pass
+            data_temp = self.ser_display_lineedit.text()
+            data = ''
+            for i in range(0, len(data_temp)):
+                try:
+                    data = data + '%02x' %(int(data_temp[i])) + ' '
+                except:
+                    pass
+            self.ser_display_lineedit.setText(data)
+
 
     def data2hex(self, text):
         """

@@ -32,10 +32,10 @@ from MySerAsist import Serial_window
 import binascii
 
 Tool_dict = {
-    'file_sqlite_define' : 0,
-    'serial_define' : 1,
-    'picbin_define' : 2,
-    'segger_define' : 3
+    'file_sqlite_define': 0,
+    'serial_define': 1,
+    'picbin_define': 2,
+    'segger_define': 3
 }
 
 class Little_tool(QWidget):
@@ -91,9 +91,9 @@ class Little_tool(QWidget):
             self.excel_display.window_clear()
             try:
                 self.Serial_display.window_clear()
+                self.segger_display.segger_setting_file_update()
             except:
-                return
-            self.segger_display.segger_setting_file_update()
+                print('window colse error')
 
             event.accept()
         else:
