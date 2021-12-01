@@ -336,6 +336,18 @@ class Segger_Dialog(object):
 
 
     def segger_hexsend_check_checked(self):
-        text = self.segger_send_data_line.text()
         if self.segger_hexsend_check.isChecked():
-            text = ''.join([chr(int(x, 16)) for x in text.split()])
+            self.text = self.segger_send_data_line.text()
+            # try:
+            #     text = ''.join([chr(int(x, 16)) for x in self.text.split()])
+            # except:
+            #     pass
+            text = ''
+            for i in range(0, len(self.text)):
+                try:
+                    text = text + '%02x' % (int(self.text[i])) + ' '
+                except:
+                    pass
+            self.segger_send_data_line.setText(text)
+        else:
+            self.segger_send_data_line.setText(self.text)

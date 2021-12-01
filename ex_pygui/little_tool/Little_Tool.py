@@ -93,7 +93,7 @@ class Little_tool(QWidget):
                 self.Serial_display.window_clear()
                 self.segger_display.segger_setting_file_update()
             except:
-                print('window colse error')
+                print('window close error')
 
             event.accept()
         else:
